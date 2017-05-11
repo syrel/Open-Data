@@ -2,6 +2,7 @@
   "name": "opendata",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,5 +16,15 @@
   "bugs": {
     "url": "https://github.com/syrel/Open-Data/issues"
   },
-  "homepage": "https://github.com/syrel/Open-Data#readme"
+  "homepage": "https://github.com/syrel/Open-Data#readme",
+  "dependencies": {
+    "react": "^15.5.4",
+    "react-bootstrap": "^0.31.0",
+    "react-dom": "^15.5.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.4.0"
+  },
+  "presets": ["env"]
 }
