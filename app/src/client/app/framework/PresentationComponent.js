@@ -4,6 +4,8 @@
 
 import React from 'react';
 
+// this.state hold inner component state
+// presentation must be passed as part of this.props
 class PresentationComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -14,24 +16,53 @@ class PresentationComponent extends React.Component {
                 console.error(message);
             }
         }
+
         props.bind.component = this;
-
-        this.state = {
-            entity: props.bind.entity,
-            presentation: props.bind.presentation,
-            strongSelection: null
-        };
-
-
+        this.state = {};
     }
 
-    strongSelection() {
-        return this.state.strongSelection;
-    }
-
+    /**
+     * Return presentation I represent
+     * I am pure props function and can be used within render()
+     * @returns {Presentation}
+     */
     presentation() {
-        return this.state.presentation;
+        return this.props.bind.presentation;
     }
+
+    /**
+     * Return presentation's entity I represent
+     * I am pure props function and can be used within render()
+     * @returns {Object}
+     */
+    entity() {
+        return this.presentation().entity();
+    }
+
+    /**
+     * Return presentation's strong selection
+     * I am pure props function and can be used within render()
+     * @returns {Object}
+     */
+    strongSelection() {
+        return this.presentation().strongSelection();
+    }
+
+    bindTo(presentation) {
+        this.props.bind.entity = presentation.entity();
+        this.props.bind.component = this;
+        this.props.bind.presentation = presentation;
+        presentation.bindings().component = this;
+        Object.assign(this.state, {
+            entity: presentation.entity(),
+            presentation: presentation,
+            strongSelection: presentation.strongSelection()
+        });
+    }
+
+
+
+
 }
 
 export default PresentationComponent;

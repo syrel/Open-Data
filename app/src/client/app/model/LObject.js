@@ -15,10 +15,11 @@ class LObject {
     constructor(endpoint, uri) {
         this.endpoint = endpoint;
         this.uri = uri;
+        this.properties = null;
 
         this.extensions = [
             {
-                method: this.gtInspectorPropertiesIn.bind(this),
+                method: this.gtInspectorPropertiesIn,
                 order: 10
             }
         ]
@@ -33,6 +34,10 @@ class LObject {
      * @returns {Promise}
      */
     allProperties() {
+        if (this.properties !== null) {
+            return Promise.resolve(this.properties);
+        }
+
         return new Promise((resolve, reject) => {
             Sparql.query(this.endpoint.getUri(), ALL_PROPERTIES_QUERY(this.uri))
                 .then(result => {
@@ -52,11 +57,16 @@ class LObject {
 
     gtInspectorPropertiesIn(composite) {
         composite.table(table => {
+            table.title(() => "Properties");
+            table.withHeader();
             table.display((entity) => entity.allProperties());
             table.column(column => {
                 column
                     .named(() => 'Property')
-                    .evaluated(each => each.getProperty().content)
+                    .evaluated(each => {
+                        var content = each.getProperty().content;
+                        return content.substr(content.lastIndexOf('/') + 1);
+                    })
             });
             table.column(column => {
                 column

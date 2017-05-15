@@ -9,12 +9,15 @@ import { Table } from 'react-bootstrap';
 import TableColumn from './TableColumn';
 import _ from 'underscore'
 
+/**
+ * this.state.displayedValue is cached value to support Promises
+ */
 class TableComponent extends PresentationComponent {
     constructor(props) {
         super(props);
 
         Object.assign(this.state, {
-           displayedValue: TableComponent.defaultDisplayedValue()
+            displayedValue: TableComponent.defaultDisplayedValue()
         });
     }
 
@@ -28,46 +31,57 @@ class TableComponent extends PresentationComponent {
         }
         var thenable = this.presentation().displayedValue();
 
+        var waiting = false;
         thenable.then(result => {
             if (!_.isEqual(this.state.displayedValue,result)) {
                 this.state.displayedValue = result;
-                this.setState(this.state);
+                if (waiting) {
+                    // Only request state change if we had to wait for promise
+                    this.setState(this.state);
+                }
             }
         });
+        waiting = true;
         return this.state.displayedValue;
     }
 
     handleStrongSelection(entity) {
         this.presentation().strongSelected(entity);
+        this.forceUpdate();
     }
 
     render() {
         var values = this.displayedValue();
         var columns = this.presentation().columns();
 
-
         return (
+            <div>
             <Table hover>
-                <thead>
-                <tr>
-                    { columns.map((column, index) => (<th> { column.getName(this.presentation().entity()) } </th>)) }
-                </tr>
-                </thead>
+                {this.presentation().showHeader() &&
+                    <thead>
+                    <tr>
+                        { columns.map((column, index) => (<th key={index}> { column.getName(this.entity()) } </th>)) }
+                    </tr>
+                    </thead>
+                }
                 <tbody>
-                {values.map((value, valueIndex) =>
-                    (<tr value={value} onClick={() => this.handleStrongSelection(value)} className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection' : '') }>
-                        { columns.map((column, columnIndex) =>
-                            (<td>
-                                {
-                                   column.getValue(this.presentation().transform(values[valueIndex]))
-                                }
-                            </td>))
-                        }
-                    </tr>)
-                )}
+                    { values.map((value, index) => this.renderRow(value, index, columns)) }
                 </tbody>
             </Table>
+            </div>
         );
+    }
+
+    renderRow(value, valueIndex, columns) {
+        return (<tr key={valueIndex} value={value} onClick={() => this.handleStrongSelection(value)} className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection' : '') }>
+            { columns.map((column, columnIndex) =>
+                (<td key={columnIndex}>
+                    {
+                        column.getValue(this.presentation().transform(value))
+                    }
+                </td>))
+            }
+        </tr>)
     }
 }
 
@@ -79,7 +93,8 @@ class TablePresentation extends Presentation {
             transformed: object => object,
             columns: [],
             dynamic: null,
-            header: null
+            header: null,
+            showHeader: false
         });
     }
 
@@ -123,6 +138,20 @@ class TablePresentation extends Presentation {
             transformed: block
         });
         return this;
+    }
+
+    withoutHeader() {
+        this.state.showHeader = false;
+        return this;
+    }
+
+    withHeader() {
+        this.state.showHeader = true;
+        return this;
+    }
+
+    showHeader() {
+        return this.state.showHeader;
     }
 
     transform(object) {

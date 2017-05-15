@@ -19,7 +19,7 @@ class LClass {
 
         this.extensions = [
             {
-                method: this.gtInspectorObjectsIn.bind(this),
+                method: this.gtInspectorObjectsIn,
                 order: 10
             }
         ]
@@ -48,11 +48,10 @@ class LClass {
 
     gtInspectorObjectsIn(composite) {
         composite.table(table => {
+            table.title(() => "Objects");
             table.display((entity) => entity.allObjects());
             table.column(column => {
-                column
-                    .named(() => 'Objects')
-                    .display(each => each.toString())
+                column.display(each => each.toString())
             })
         });
     }

@@ -20,13 +20,17 @@ class LEndpoint {
 
         this.extensions = [
             {
-                method: this.gtInspectorClassesIn.bind(this),
+                method: this.gtInspectorClassesIn,
                 order: 10
             }
         ]
     }
 
     getUri() {
+        return this.uri;
+    }
+
+    toString() {
         return this.uri;
     }
 
@@ -49,11 +53,13 @@ class LEndpoint {
 
     gtInspectorClassesIn(composite) {
         composite.table(table => {
+            table.title(() => "Classes");
             table.display(_.once((entity) => entity.allClasses()));
             table.column(column => {
-                column
-                    .named(() => 'Classes')
-                    .display(each => each.toString())
+                column.display(each => {
+                    var clazz = each.clazz;
+                    return clazz.substr(clazz.lastIndexOf('/') + 1);
+                })
             })
         });
     }
