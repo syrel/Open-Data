@@ -56,10 +56,7 @@ class LEndpoint {
             table.title(() => "Classes");
             table.display(_.once((entity) => entity.allClasses()));
             table.column(column => {
-                column.display(each => {
-                    var clazz = each.clazz;
-                    return clazz.substr(clazz.lastIndexOf('/') + 1);
-                })
+                column.display(each => each.clazz.substr(each.clazz.lastIndexOf('/') + 1))
             })
         });
     }

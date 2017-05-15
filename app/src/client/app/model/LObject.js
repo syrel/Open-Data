@@ -60,16 +60,14 @@ class LObject {
             table.title(() => "Properties");
             table.withHeader();
             table.display((entity) => entity.allProperties());
-            table.column(column => {
-                column
+            table.column(column => {column
                     .named(() => 'Property')
                     .evaluated(each => {
                         var content = each.getProperty().content;
                         return content.substr(content.lastIndexOf('/') + 1);
                     })
             });
-            table.column(column => {
-                column
+            table.column(column => {column
                     .named(() => 'Value')
                     .evaluated(each => each.getValue().content + " (" + each.getValue().name + ")")
             });
