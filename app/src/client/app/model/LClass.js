@@ -16,6 +16,7 @@ class LClass {
     constructor(endpoint, clazz) {
         this.endpoint = endpoint;
         this.clazz = clazz;
+        this.objects = null;
 
         this.extensions = [
             {
@@ -34,12 +35,16 @@ class LClass {
      * @returns {Promise}
      */
     allObjects() {
+        if (this.objects !== null) {
+            return Promise.resolve(this.objects);
+        }
         return new Promise((resolve, reject) => {
             Sparql.query(this.endpoint.getUri(), ALL_OBJECTS_QUERY(this.clazz))
                 .then(result => {
                         var objects = result.root.children[1].children.map(each => {
                             return new LObject(this.endpoint, each.children[0].children[0].content);
                         });
+                    this.objects = objects;
                         resolve(objects);
                     },
                     error => reject(error))

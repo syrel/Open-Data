@@ -27,9 +27,12 @@ class App extends React.Component {
     }
 
     handleChange() {
+        const endpoint = new LEndpoint(ReactDOM.findDOMNode(this.refs.endpoint).value);
         this.setState({
-            endpoint: new LEndpoint(ReactDOM.findDOMNode(this.refs.endpoint).value)
+            endpoint: endpoint
         });
+        this.inspector = new Inspector();
+        this.inspector.openOn(endpoint);
     }
 
     render () {
@@ -39,7 +42,7 @@ class App extends React.Component {
                     <FormGroup>
                         <InputGroup>
                             <InputGroup.Addon>Endpoint:</InputGroup.Addon>
-                            <FormControl type="text" ref='endpoint' value={this.state.endpoint.getUri()} onChange={this.handleChange}/>
+                            <FormControl type="text" ref='endpoint' value={this.state.endpoint.getUri()} onChange={this.handleChange.bind(this)}/>
                         </InputGroup>
                     </FormGroup>
                 </form>

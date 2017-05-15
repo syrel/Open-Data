@@ -37,7 +37,6 @@ class LObject {
         if (this.properties !== null) {
             return Promise.resolve(this.properties);
         }
-
         return new Promise((resolve, reject) => {
             Sparql.query(this.endpoint.getUri(), ALL_PROPERTIES_QUERY(this.uri))
                 .then(result => {
@@ -49,6 +48,7 @@ class LObject {
                                 property: { content: property.content, name: property.name },
                                 value: { content: value.content, name: value.name }});
                         });
+                        this.properties = properties;
                         resolve(properties);
                     },
                     error => reject(error))

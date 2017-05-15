@@ -40,6 +40,15 @@ class TableComponent extends PresentationComponent {
                     this.setState(this.state);
                 }
             }
+        }, error => {
+            var result = [];
+            if (!_.isEqual(this.state.displayedValue,result)) {
+                this.state.displayedValue = result;
+                if (waiting) {
+                    // Only request state change if we had to wait for promise
+                    this.setState(this.state);
+                }
+            }
         });
         waiting = true;
         return this.state.displayedValue;

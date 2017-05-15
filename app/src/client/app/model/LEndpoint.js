@@ -17,6 +17,7 @@ const ALL_CLASSES_QUERY  = `
 class LEndpoint {
     constructor(uri) {
         this.uri = uri;
+        this.classes = null;
 
         this.extensions = [
             {
@@ -39,12 +40,16 @@ class LEndpoint {
      * @returns {Promise}
      */
     allClasses() {
+        if (this.classes !== null) {
+            return Promise.resolve(this.classes);
+        }
         return new Promise((resolve, reject) => {
             Sparql.query(this.uri, ALL_CLASSES_QUERY)
                 .then(result => {
                     var classes = result.root.children[1].children.map(each => {
                         return new LClass(this, each.children[0].children[0].content);
                     });
+                    this.classes = classes;
                     resolve(classes);
                 },
                 error => reject(error))
