@@ -7,17 +7,21 @@ import ReactDOM from 'react-dom';
 import {render} from 'react-dom';
 
 import { Button } from 'react-bootstrap';
-import { ButtonToolbar } from 'react-bootstrap';
 import { FormGroup } from 'react-bootstrap';
 import { InputGroup } from 'react-bootstrap';
 import { FormControl } from 'react-bootstrap';
 import TablePresentation from './framework/TablePresentation';
 import CompositePresentation from './framework/CompositePresentation';
+import PagerPresentation from './framework/PagerPresentation';
+import TabulatorPresentation from './framework/TabulatorPresentation';
+import Browser from './framework/Browser';
 
 import YASQE from 'yasgui-yasqe';
 import Sparql from './Sparql';
 
-import Endpoint from './model/Endpoint';
+import LEndpoint from './model/LEndpoint';
+import LClass from './model/LClass';
+import LObject from './model/LObject';
 
 class LoadingButton extends React.Component {
 
@@ -72,10 +76,38 @@ class App extends React.Component {
                 content:  each.children[0].content
             }}));
 
-        this.inspector = new CompositePresentation();
-        var endpoint = new Endpoint('https://ld.geo.admin.ch/query');
-        endpoint.extensions[0].method(this.inspector);
-        this.inspector.on(endpoint);
+        var endpoint = new LEndpoint('https://ld.geo.admin.ch/query');
+
+        this.inspector = new Browser(new TabulatorPresentation());
+        this.inspector.openOn(endpoint);
+
+        // this.inspector = new TablePresentation();
+        // this.inspector.column();
+        // this.inspector.on([1,2,3]);
+
+        // this.inspector = new TabulatorPresentation();
+        // this.inspector.table(table => {
+        //     table.column();
+        // });
+        // this.inspector.table(table => {
+        //     table.column();
+        // });
+        // this.inspector.table(table => {
+        //     table.column();
+        // });
+        //
+        // this.inspector.on([1,2,3]);
+
+        // endpoint.extensions[0].method(this.inspector);
+        // this.inspector.on(endpoint);
+
+        //var clazz = new LClass(endpoint, 'http://www.geonames.org/ontology#A.ADM2');
+        // clazz.extensions[0].method(this.inspector);
+        // this.inspector.on(clazz);
+
+        // var object = new LObject(endpoint, 'https://ld.geo.admin.ch/boundaries/district/1842');
+        // object.extensions[0].method(this.inspector);
+        // this.inspector.on(object);
     }
 
     onClick (callback) {

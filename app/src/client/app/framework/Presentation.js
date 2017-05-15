@@ -3,29 +3,26 @@
  */
 
 import React from 'react';
+import _ from 'underscore'
 
 class Presentation {
     constructor(props) {
         this.state = {
-            displayed: (entity) => entity,
-            displayedValue: null,
+            displayed: (entity) => { return { then: (resolved) => resolved(entity) } },
             bindings: {
                 presentation: this,
                 entity: null,
                 component: null
             },
+            strongSelection: null,
+            observers: {
+                strongSelection: entity => entity
+            }
         };
     }
 
     display(block) {
         this.state.displayed = block;
-        if (!(block instanceof Promise)) {
-            this.state.displayed = () => new Promise((resolve, reject) => {
-                if (this.hasEntity()) {
-                    resolve(block(this.entity()));
-                }
-            })
-        }
         return this;
     }
 
@@ -34,9 +31,11 @@ class Presentation {
             throw Error('Entity can not be nil!');
         }
         this.state.bindings.entity = entity;
-        if (this.hasComponent()) {
-            this.component().setState({ entity: entity });
-        }
+        this.setComponentState({ entity: entity });
+    }
+
+    getTitle() {
+        return "Presentation";
     }
 
     entity() {
@@ -44,7 +43,12 @@ class Presentation {
     }
 
     displayedValue() {
-        return this.state.displayed();
+        var thenable = this.state.displayed(this.entity());
+        if (_.isUndefined(thenable.then)) {
+            var value = thenable;
+            thenable = { then: (resolved => resolved(value)) };
+        }
+        return thenable;
     }
 
     bindings() {
@@ -65,6 +69,26 @@ class Presentation {
 
     render() {
         throw new Error('Subclass responsibility!');
+    }
+
+    setComponentState(state) {
+        if (this.hasComponent()) {
+            this.component().setState(state);
+        }
+    }
+
+    strongSelected(entity) {
+        this.state.strongSelection = entity;
+        this.state.observers.strongSelection(entity);
+        this.setComponentState({strongSelection: entity});
+    }
+
+    strongSelection() {
+        return this.state.strongSelection;
+    }
+
+    onStrongSelected(observer) {
+        this.state.observers.strongSelection = observer;
     }
 }
 

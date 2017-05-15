@@ -7,7 +7,6 @@ import Presentation from './Presentation';
 import PresentationComponent from './PresentationComponent';
 import TablePresentation from './TablePresentation';
 
-
 class CompositeComponent extends PresentationComponent {
     constructor(props) {
         super(props);
@@ -17,9 +16,13 @@ class CompositeComponent extends PresentationComponent {
         });
     }
 
+    presentations() {
+        return this.state.presentations;
+    }
+
     render() {
         return (
-           <div>{this.state.presentations.map(presentation => presentation.render())}</div>
+           <div>{this.presentations().map(presentation => presentation.render())}</div>
         );
     }
 }
@@ -30,9 +33,16 @@ class CompositePresentation extends Presentation {
         this.presentations = [];
     }
 
+    add(presentation) {
+        this.presentations.push(presentation);
+        if (this.hasComponent()) {
+            this.component().setState({presentations: this.presentations});
+        }
+    }
+
     table(block) {
         let table = new TablePresentation({ key: this.presentations.length });
-        this.presentations.push(table);
+        this.add(table);
         block(table);
         return table;
     }
@@ -47,4 +57,5 @@ class CompositePresentation extends Presentation {
     }
 }
 
+CompositePresentation.CompositeComponent = CompositeComponent;
 export default CompositePresentation;

@@ -18,8 +18,15 @@ class PresentationComponent extends React.Component {
 
         this.state = {
             entity: props.bind.entity,
-            presentation: props.bind.presentation
+            presentation: props.bind.presentation,
+            strongSelection: null
         };
+
+
+    }
+
+    strongSelection() {
+        return this.state.strongSelection;
     }
 
     presentation() {

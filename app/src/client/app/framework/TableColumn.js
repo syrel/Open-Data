@@ -7,6 +7,7 @@ class TableColumn {
         this.state = {
             named: entity => "Column",
             evaluated: entity => entity,
+            displayed: entity => entity,
             index: index
         }
     }
@@ -18,6 +19,12 @@ class TableColumn {
 
     evaluated(block) {
         this.state.evaluated = block;
+        return this;
+    }
+
+    display(block) {
+        this.state.displayed = block;
+        return this;
     }
 
     getName(entity) {
@@ -25,7 +32,7 @@ class TableColumn {
     }
 
     getValue(object) {
-        return this.state.evaluated(object);
+        return this.state.displayed(this.state.evaluated(object));
     }
 
     index() {

@@ -1,0 +1,14 @@
+
+.table>tbody>tr.Table-strongSelection {
+    background: #337ab7;
+    color: white;
+}
+
+.table-hover>tbody>tr.Table-strongSelection:hover {
+    background-color: #337ab7;
+    color: white;
+}
+
+.table>tbody>tr {
+    cursor: pointer
+}

@@ -7,26 +7,29 @@ import PresentationComponent from './PresentationComponent';
 import Presentation from './Presentation';
 import { Table } from 'react-bootstrap';
 import TableColumn from './TableColumn';
+import _ from 'underscore'
 
 class TableComponent extends PresentationComponent {
     constructor(props) {
         super(props);
 
         Object.assign(this.state, {
-           displayedValue: this.defaultDisplayedValue()
+           displayedValue: TableComponent.defaultDisplayedValue()
         });
     }
 
-    defaultDisplayedValue() {
+    static defaultDisplayedValue() {
         return [];
     }
 
     displayedValue() {
-        var hasEntity = this.presentation().hasEntity();
-        var promise = hasEntity ? this.presentation().displayedValue() : Promise.resolve([]);
+        if (!this.presentation().hasEntity()) {
+            return this.state.displayedValue;
+        }
+        var thenable = this.presentation().displayedValue();
 
-        promise.then(result => {
-            if (hasEntity && this.state.displayedValue != result) {
+        thenable.then(result => {
+            if (!_.isEqual(this.state.displayedValue,result)) {
                 this.state.displayedValue = result;
                 this.setState(this.state);
             }
@@ -34,9 +37,14 @@ class TableComponent extends PresentationComponent {
         return this.state.displayedValue;
     }
 
+    handleStrongSelection(entity) {
+        this.presentation().strongSelected(entity);
+    }
+
     render() {
         var values = this.displayedValue();
         var columns = this.presentation().columns();
+
 
         return (
             <Table hover>
@@ -47,8 +55,14 @@ class TableComponent extends PresentationComponent {
                 </thead>
                 <tbody>
                 {values.map((value, valueIndex) =>
-                    (<tr>
-                        { columns.map((column, columnIndex) => (<td> {column.getValue(this.presentation().transform(values[valueIndex]))} </td>)) }
+                    (<tr value={value} onClick={() => this.handleStrongSelection(value)} className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection' : '') }>
+                        { columns.map((column, columnIndex) =>
+                            (<td>
+                                {
+                                   column.getValue(this.presentation().transform(values[valueIndex]))
+                                }
+                            </td>))
+                        }
                     </tr>)
                 )}
                 </tbody>
@@ -63,17 +77,17 @@ class TablePresentation extends Presentation {
 
         Object.assign(this.state, {
             transformed: object => object,
-            displayed: entity => this.entity() === null ? [ ] : this.entity(),
             columns: [],
             dynamic: null,
-            header: null,
+            header: null
         });
     }
 
     column(block) {
         let column = new TableColumn( this.state.columns.length);
         this.state.columns.push(column);
-        block(column);
+        if (!_.isUndefined(block))
+            block(column);
         return column;
     }
 
