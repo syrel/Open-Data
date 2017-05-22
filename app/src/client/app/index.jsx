@@ -21,7 +21,10 @@ class App extends React.Component {
         this.state = {
             endpoint: new LEndpoint('https://ld.geo.admin.ch/query')
             //endpoint: new LEndpoint('http://lindas-data.ch/sparql')
+            //endpoint: new LEndpoint('http://dbpedia.org/sparql')
+
             //endpoint: new LEndpoint('https://query.wikidata.org/bigdata/namespace/wdq/sparql')
+            //endpoint: new LEndpoint('http://data.alod.ch/query')
         };
 
         this.inspector = new Inspector();

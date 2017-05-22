@@ -6,6 +6,7 @@ import Sparql from '../Sparql'
 import template from '../template'
 import LObject from './LObject'
 import Thenable from './../Thenable'
+import _ from 'underscore'
 
 const ALL_OBJECTS_QUERY  = template`SELECT ?object
 { 
@@ -17,7 +18,7 @@ class LClass {
     constructor(endpoint, clazz) {
         this.endpoint = endpoint;
         this.clazz = clazz;
-        this.objects = null;
+        this.cache = {};
 
         this.extensions = [
             {
@@ -28,34 +29,32 @@ class LClass {
     }
 
     toString() {
-        return this.clazz;
+        return this.clazz.substr(this.clazz.lastIndexOf('/') + 1);
     }
 
     /**
      * Return all objects of this Class
      * @returns {Promise}
      */
-    allObjects() {
-        if (this.objects !== null) {
-            return Thenable.resolve(this.objects);
-        }
-        return new Promise((resolve, reject) => {
-            Sparql.query(this.endpoint.getUri(), ALL_OBJECTS_QUERY(this.clazz))
-                .then(result => {
-                        var objects = result.root.children[1].children.map(each => {
-                            return new LObject(this.endpoint, each.children[0].children[0].content);
+    objects() {
+        if (_.isUndefined(this.cache.objects)) {
+            this.cache.objects = Thenable.of((resolve, reject) => {
+                Sparql.query(this.endpoint.getUri(), ALL_OBJECTS_QUERY(this.clazz))
+                    .then(result => {
+                        var objects = result.map(each => {
+                            return new LObject(this.endpoint, each.binding.uri);
                         });
-                    this.objects = objects;
                         resolve(objects);
-                    },
-                    error => reject(error))
-        })
+                    }, error => reject(error))
+            });
+        }
+        return this.cache.objects;
     }
 
     gtInspectorObjectsIn(composite) {
         composite.table(table => {
             table.title(() => "Objects");
-            table.display((entity) => entity.allObjects());
+            table.display((entity) => entity.objects());
             table.column(column => {
                 column.display(each => each.toString())
             })

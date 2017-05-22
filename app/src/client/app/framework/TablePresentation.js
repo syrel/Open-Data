@@ -131,7 +131,7 @@ class TablePresentation extends Presentation {
         return this.state.transformed(object);
     }
 
-    render(entity) {
+    render() {
         return (<TableComponent bind={ this.bindings() }/>)
     }
 }

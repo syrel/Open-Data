@@ -21,7 +21,7 @@ class TabulatorComponent extends CompositePresentation.CompositeComponent {
             <Tabs activeKey={this.state.key} onSelect={this.handleSelect} animation={false} id="tabulator">
                 {
                     this.presentations().map((presentation, index) => (
-                        <Tab key={index} eventKey={index} title={ presentation.getTitle() }>{ presentation.render() }</Tab>
+                        <Tab key={index} eventKey={index} title={ presentation.getTitle() }>{ presentation.render(index) }</Tab>
                     ))
                 }
             </Tabs>
@@ -34,8 +34,8 @@ class TabulatorPresentation extends CompositePresentation {
         super(props);
     }
 
-    render() {
-        return (<TabulatorComponent bind={ this.bindings() }/>);
+    render(index) {
+        return (<TabulatorComponent key={index} bind={ this.bindings() }/>);
     }
 }
 

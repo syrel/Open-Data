@@ -19,6 +19,14 @@ class LBinding {
         return this.value;
     }
 
+    getName() {
+        return this.getProperty().content;
+    }
+
+    getContent() {
+        return this.getValue().content;
+    }
+
     getEndpoint() {
         return this.endpoint;
     }

@@ -49,7 +49,7 @@ class MapComponent extends PresentationComponent {
 
 class MapPresentation extends Presentation {
     render(entity) {
-        return (<MapComponent bind={ this.bindings() } width={600} height={500}/>)
+        return (<MapComponent bind={ this.bindings() } width={600} height={400}/>)
     }
 }
 

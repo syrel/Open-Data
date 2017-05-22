@@ -69,7 +69,9 @@ class CompositeComponent extends PresentationComponent {
 
     render() {
         return (
-           <div>{this.presentations().map(presentation => presentation.render())}</div>
+           <div>{this.presentations().map((presentation, index) => {
+               return <div key={ index }> { presentation.render() }</div>
+           })}</div>
         );
     }
 }
@@ -130,6 +132,14 @@ class CompositePresentation extends Presentation {
         return map;
     }
 
+    with(block) {
+        let composite = new CompositePresentation();
+        this.add(composite);
+        if (!_.isUndefined(block))
+            block(composite);
+        return composite;
+    }
+
     browser() {
         if (!this.hasOwner()) {
             return;
@@ -154,7 +164,7 @@ class CompositePresentation extends Presentation {
 
     on(entity) {
         super.on(entity);
-        this.presentations.forEach(presentation => presentation.on(entity));
+        this.presentations.forEach(presentation => presentation.on(this.state.of(entity)));
     }
 
     last() {
@@ -173,7 +183,7 @@ class CompositePresentation extends Presentation {
     }
 
     render() {
-        return (<CompositeComponent bind={ this.bindings() }>{this.presentations.map(presentation => presentation.render())}</CompositeComponent>);
+        return (<CompositeComponent bind={ this.bindings() }>{this.presentations.map((presentation, index) => presentation.render(index))}</CompositeComponent>);
     }
 }
 

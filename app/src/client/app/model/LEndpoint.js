@@ -4,20 +4,20 @@
 
 import Sparql from '../Sparql'
 import LClass from './LClass'
+import LBNode from './LBNode'
 import _ from 'underscore'
 
 const ALL_CLASSES_QUERY  = `
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        SELECT DISTINCT ?type
-        WHERE {
-            ?a ?property ?type.
-            FILTER (?property in (rdf:type))
-        }`;
+SELECT DISTINCT ?type
+WHERE {
+    ?a ?property ?type.
+    FILTER (?property in (<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>))
+}`;
 
 class LEndpoint {
     constructor(uri) {
         this.uri = uri;
-        this.classes = null;
+        this.cache = {};
 
         this.extensions = [
             {
@@ -25,6 +25,14 @@ class LEndpoint {
                 order: 10
             }
         ]
+    }
+
+    static lindas() {
+        return new LEndpoint('http://lindas-data.ch/sparql');
+    }
+
+    static dbpedia() {
+        return new LEndpoint('http://dbpedia.org/sparql');
     }
 
     getUri() {
@@ -39,29 +47,35 @@ class LEndpoint {
      * Return all possible classes within this Endpoint
      * @returns {Promise}
      */
-    allClasses() {
-        if (this.classes !== null) {
-            return Promise.resolve(this.classes);
+    classes() {
+        if (_.isUndefined(this.cache.classes)) {
+            this.cache.classes = new Promise((resolve, reject) => {
+                Sparql.query(this.uri, ALL_CLASSES_QUERY)
+                    .then(result => {
+                        var classes = result.map((each, index) => {
+                            if (!_.isUndefined(each.binding.uri)) {
+                                return new LClass(this, each.binding.uri)
+                            }
+                            else if (!_.isUndefined(each.binding.bnode)) {
+                                return new LBNode(this, each.binding.bnode)
+                            }
+                            else {
+                                console.error('Unknown class: ('+ index + ')', each);
+                            }
+                        });
+                        resolve(classes);
+                    }, error => reject(error))
+            });
         }
-        return new Promise((resolve, reject) => {
-            Sparql.query(this.uri, ALL_CLASSES_QUERY)
-                .then(result => {
-                    var classes = result.root.children[1].children.map(each => {
-                        return new LClass(this, each.children[0].children[0].content);
-                    });
-                    this.classes = classes;
-                    resolve(classes);
-                },
-                error => reject(error))
-        })
+        return this.cache.classes;
     }
 
     gtInspectorClassesIn(composite) {
         composite.table(table => {
             table.title(() => "Classes");
-            table.display(_.once((entity) => entity.allClasses()));
+            table.display(_.once((entity) => entity.classes()));
             table.column(column => {
-                column.display(each => each.clazz.substr(each.clazz.lastIndexOf('/') + 1))
+                column.display(each => each.toString())
             })
         });
     }

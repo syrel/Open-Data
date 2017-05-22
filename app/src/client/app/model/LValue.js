@@ -53,7 +53,6 @@ class LValue {
         return Thenable.reject(Error('Not an uri!'));
     }
 
-
     gtInspectorLiteralIn(composite) {
         composite.text(text => { text
             .title(() => 'Literal')
