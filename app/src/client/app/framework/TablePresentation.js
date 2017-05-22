@@ -13,45 +13,9 @@ import _ from 'underscore'
  * this.state.displayedValue is cached value to support Promises
  */
 class TableComponent extends PresentationComponent {
-    constructor(props) {
-        super(props);
 
-        Object.assign(this.state, {
-            displayedValue: TableComponent.defaultDisplayedValue()
-        });
-    }
-
-    static defaultDisplayedValue() {
+    defaultDisplayedValue() {
         return [];
-    }
-
-    displayedValue() {
-        if (!this.presentation().hasEntity()) {
-            return this.state.displayedValue;
-        }
-        var thenable = this.presentation().displayedValue();
-
-        var waiting = false;
-        thenable.then(result => {
-            if (!_.isEqual(this.state.displayedValue,result)) {
-                this.state.displayedValue = result;
-                if (waiting) {
-                    // Only request state change if we had to wait for promise
-                    this.setState(this.state);
-                }
-            }
-        }, error => {
-            var result = [];
-            if (!_.isEqual(this.state.displayedValue,result)) {
-                this.state.displayedValue = result;
-                if (waiting) {
-                    // Only request state change if we had to wait for promise
-                    this.setState(this.state);
-                }
-            }
-        });
-        waiting = true;
-        return this.state.displayedValue;
     }
 
     handleStrongSelection(entity) {
@@ -82,9 +46,9 @@ class TableComponent extends PresentationComponent {
     }
 
     renderRow(value, valueIndex, columns) {
-        return (<tr key={valueIndex} value={value} onClick={() => this.handleStrongSelection(value)} className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection' : '') }>
+        return (<tr key={valueIndex} value={value} onClick={() => this.handleStrongSelection(value) } className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection' : '') }>
             { columns.map((column, columnIndex) =>
-                (<td key={columnIndex}>
+                (<td key={columnIndex} style={{'wordWrap': 'break-all'}}>
                     {
                         column.getValue(this.presentation().transform(value))
                     }

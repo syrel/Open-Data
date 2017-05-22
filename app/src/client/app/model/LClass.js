@@ -5,6 +5,7 @@
 import Sparql from '../Sparql'
 import template from '../template'
 import LObject from './LObject'
+import Thenable from './../Thenable'
 
 const ALL_OBJECTS_QUERY  = template`SELECT ?object
 { 
@@ -36,7 +37,7 @@ class LClass {
      */
     allObjects() {
         if (this.objects !== null) {
-            return Promise.resolve(this.objects);
+            return Thenable.resolve(this.objects);
         }
         return new Promise((resolve, reject) => {
             Sparql.query(this.endpoint.getUri(), ALL_OBJECTS_QUERY(this.clazz))

@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import _ from 'underscore'
 
 // this.state hold inner component state
 // presentation must be passed as part of this.props
@@ -18,7 +19,43 @@ class PresentationComponent extends React.Component {
         }
 
         props.bind.component = this;
-        this.state = {};
+        this.state = {
+            entity: props.bind.entity
+        };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (!_.isEqual(this.state.entity, nextProps.bind.entity)) {
+            this.state.entity = nextProps.bind.entity;
+            this.resetState(nextProps);
+        }
+    }
+
+    resetState() {
+        this.state.displayedValue = _.noop();
+    }
+
+    defaultDisplayedValue() {
+        return null;
+    }
+
+    displayedValue() {
+        if (!this.presentation().hasEntity()) {
+            return this.defaultDisplayedValue();
+        }
+
+        if (!_.isUndefined(this.state.displayedValue)) {
+            return this.state.displayedValue;
+        }
+
+        var value = this.defaultDisplayedValue();
+        var thenable = this.presentation().displayedValue();
+        thenable.then(result => {
+            this.state.displayedValue = result;
+            value = result;
+        });
+        thenable.onCompleted(() => this.setState(this.state));
+        return value;
     }
 
     /**
@@ -47,22 +84,6 @@ class PresentationComponent extends React.Component {
     strongSelection() {
         return this.presentation().strongSelection();
     }
-
-    bindTo(presentation) {
-        this.props.bind.entity = presentation.entity();
-        this.props.bind.component = this;
-        this.props.bind.presentation = presentation;
-        presentation.bindings().component = this;
-        Object.assign(this.state, {
-            entity: presentation.entity(),
-            presentation: presentation,
-            strongSelection: presentation.strongSelection()
-        });
-    }
-
-
-
-
 }
 
 export default PresentationComponent;

@@ -18,7 +18,7 @@ class PagerComponent extends CompositePresentation.CompositeComponent {
             <div style={{whiteSpace: 'nowrap', overflowX: 'auto'}}>
                 {
                     this.presentations().map((presentation, index) => (
-                        <div ref={"pane"+index} key={index} style={{minWidth: '40%', maxWidth: '80%', maxHeight: '85%', overflowY: 'auto', display: 'inline-block', verticalAlign: 'top'}}>
+                        <div ref={"pane"+index} key={index} style={{minWidth: '40%', maxWidth: '60%', maxHeight: '83%', overflowY: 'auto', display: 'inline-block', verticalAlign: 'top'}}>
                             { presentation.render() }
                         </div>
                     ))
@@ -32,8 +32,17 @@ class PagerComponent extends CompositePresentation.CompositeComponent {
             return;
         }
 
+        if (this.presentations().length < 1) {
+            return;
+        }
+
+
         const pane = this.refs["pane" + (this.presentations().length-1)];
         const pager = ReactDOM.findDOMNode(this);
+
+        if($(pane).offset().left < $(pager).scrollLeft()) {
+            return;
+        }
 
         $(pager).animate({
              scrollLeft: $(pane).offset().left

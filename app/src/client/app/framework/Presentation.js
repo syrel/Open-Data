@@ -4,18 +4,22 @@
 
 import React from 'react';
 import _ from 'underscore'
+import Thenable from './../Thenable'
 
 class Presentation {
     constructor(props) {
         this.state = {
-            displayed: (entity) => { return { then: (resolved) => resolved(entity) } },
+            of: entity => entity,
+            displayed: (entity) => Thenable.resolve(entity),
             title: (entity) => "Presentation",
+            when: (entity) => Thenable.resolve(true),
             bindings: {
                 presentation: this,
                 entity: null,
                 component: null
             },
             strongSelection: null,
+            strongTransmit: entity => entity,
             observers: {
                 strongSelection: entity => entity
             },
@@ -45,17 +49,32 @@ class Presentation {
         return this.state.bindings.entity;
     }
 
+    /**
+     * @returns {Thenable}
+     */
     displayedValue() {
-        var thenable = this.state.displayed(this.entity());
+        var thenable = this.state.displayed(this.state.of(this.entity()));
         if (_.isUndefined(thenable.then)) {
-            var value = thenable;
-            thenable = { then: (resolved => resolved(value)) };
+            thenable = Thenable.resolve(thenable);
+        }
+        else {
+            thenable = new Thenable(thenable);
         }
         return thenable;
     }
 
     title(block) {
         this.state.title = block;
+        return this;
+    }
+
+    when(block) {
+        this.state.when = block;
+        return this;
+    }
+
+    of(block) {
+        this.state.of = block;
         return this;
     }
 
@@ -73,6 +92,20 @@ class Presentation {
 
     hasEntity() {
         return this.entity() != null;
+    }
+
+    /**
+     * @returns {Thenable}
+     */
+    shouldShow() {
+        var thenable = this.state.when(this.state.of(this.entity()));
+        if (_.isUndefined(thenable.then)) {
+            thenable = Thenable.resolve(thenable);
+        }
+        else {
+            thenable = new Thenable(thenable);
+        }
+        return thenable;
     }
 
     browser() {
@@ -122,6 +155,12 @@ class Presentation {
         }
     }
 
+
+    strongTransmit(block) {
+        this.state.strongTransmit = block;
+        return this;
+    }
+
     strongSelected(entity) {
         this.state.strongSelection = entity;
         this.state.observers.strongSelection(entity);
@@ -129,7 +168,7 @@ class Presentation {
         if (this.hasBrowser()) {
             this.browser().notify({
                 event: 'strongSelection',
-                entity: entity,
+                entity: this.state.strongTransmit(entity),
                 presentation: this });
         }
     }

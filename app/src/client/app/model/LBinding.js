@@ -2,6 +2,8 @@
  * Created by syrel on 15.05.17.
  */
 
+import Thenable from './../Thenable'
+
 class LBinding {
     constructor(props) {
         this.endpoint = props.endpoint;
@@ -19,6 +21,19 @@ class LBinding {
 
     getEndpoint() {
         return this.endpoint;
+    }
+
+    /**
+     * @returns {Thenable}
+     */
+    propertyAt(aName) {
+        return Thenable.of((resolve, reject) => {
+            this.value.getObject().then(result => {
+                result.propertyAt(aName).then(property => {
+                    resolve(property);
+                }, error => reject(error))
+            }, error => reject(error))
+        });
     }
 }
 

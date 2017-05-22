@@ -11,15 +11,17 @@ import { InputGroup } from 'react-bootstrap';
 import { FormControl } from 'react-bootstrap';
 
 import Inspector from './framework/Inspector';
-
 import LEndpoint from './model/LEndpoint';
+import './extensions';
 
 class App extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            endpoint: new LEndpoint('https://ld.geo.admin.ch/query'),
+            endpoint: new LEndpoint('https://ld.geo.admin.ch/query')
+            //endpoint: new LEndpoint('http://lindas-data.ch/sparql')
+            //endpoint: new LEndpoint('https://query.wikidata.org/bigdata/namespace/wdq/sparql')
         };
 
         this.inspector = new Inspector();
