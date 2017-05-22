@@ -118,7 +118,7 @@ class LObject {
                             return new LBinding({
                                 endpoint: this.endpoint,
                                 property: { content: property[_.keys(property)[0]], name: _.keys(property)[0] },
-                                value: LValue.from(this.endpoint, valueContent, valueName)
+                                value: LValue.from(this.endpoint, decodeURIComponent(valueContent), valueName)
                             });
                         });
                         resolve(properties);
@@ -143,6 +143,15 @@ class LObject {
             },
             error => { reject(error) })
         });
+    }
+
+    /**
+     * Return value(content) of a property with a given name
+     * @param aName
+     * @returns {Thenable}
+     */
+    propertyValueAt(aName) {
+        return this.propertyAt(aName).then(property => property.getContent());
     }
 
     /**
@@ -405,7 +414,7 @@ class LObject {
                     text.display(entity => entity
                         .propertyAt('area')
                         .then(property => property.getContent()));
-                    text.format(string => 'Area: ' + string + ' km²');
+                    text.format(string => 'Area: ' + (parseInt(string) / 100.0) + ' km²');
                 });
                 composite.text(text => {
                     text.when(entity => entity.hasProperty('lakeArea'));
@@ -413,7 +422,7 @@ class LObject {
                     text.display(entity => entity
                         .propertyAt('lakeArea')
                         .then(property => property.getContent()));
-                    text.format(string => 'Lake area: ' + string + ' km²');
+                    text.format(string => 'Lake area: ' + (parseInt(string) / 100.0) + ' km²');
                 });
             });
     }

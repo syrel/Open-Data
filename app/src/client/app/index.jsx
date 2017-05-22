@@ -12,6 +12,7 @@ import { FormControl } from 'react-bootstrap';
 
 import Inspector from './framework/Inspector';
 import LEndpoint from './model/LEndpoint';
+import LGeoEndpoint from './model/geo/LGeoEndpoint';
 import './extensions';
 
 class App extends React.Component {
@@ -19,7 +20,7 @@ class App extends React.Component {
         super(props);
 
         this.state = {
-            endpoint: new LEndpoint('https://ld.geo.admin.ch/query')
+            endpoint: new LGeoEndpoint()
             //endpoint: new LEndpoint('http://lindas-data.ch/sparql')
             //endpoint: new LEndpoint('http://dbpedia.org/sparql')
 

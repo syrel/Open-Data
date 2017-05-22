@@ -9,6 +9,7 @@ import PresentationComponent from './PresentationComponent';
 import TablePresentation from './TablePresentation';
 import TextPresentation from './TextPresentation';
 import MapPresentation from './MapPresentation';
+import IFramePresentation from './IFramePresentation';
 
 class CompositeComponent extends PresentationComponent {
     constructor(props) {
@@ -122,6 +123,14 @@ class CompositePresentation extends Presentation {
         if (!_.isUndefined(block))
             block(text);
         return text;
+    }
+
+    iframe(block) {
+        let iframe = new IFramePresentation();
+        this.add(iframe);
+        if (!_.isUndefined(block))
+            block(iframe);
+        return iframe;
     }
 
     map(block) {

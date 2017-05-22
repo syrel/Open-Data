@@ -20,7 +20,7 @@ class LBinding {
     }
 
     getName() {
-        return this.getProperty().content;
+        return LBinding.extractName(this.getProperty().content);
     }
 
     getContent() {
@@ -29,6 +29,10 @@ class LBinding {
 
     getEndpoint() {
         return this.endpoint;
+    }
+
+    static extractName(content) {
+        return content.substr(content.lastIndexOf('/') + 1)
     }
 
     /**
