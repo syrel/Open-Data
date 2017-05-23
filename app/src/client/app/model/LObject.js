@@ -8,7 +8,7 @@ import LEndpoint from './LEndpoint'
 import LBinding from './LBinding'
 import LValue from './LValue'
 import Thenable from './../Thenable'
-import { parse } from 'wellknown'
+import { parse as wkt } from 'wellknown'
 import _ from 'underscore'
 
 const ALL_PROPERTIES_QUERY = template`SELECT ?property ?value
@@ -376,7 +376,7 @@ class LObject {
             text.display(entity => entity
                 .propertyAt('geosparql#hasGeometry')
                 .then(property => property.propertyAt('geosparql#asWKT'))
-                .then(property => JSON.stringify(parse(property.getContent()), null, 2)));
+                .then(property => JSON.stringify(wkt(property.getContent()), null, 2)));
         });
     }
 
@@ -398,7 +398,10 @@ class LObject {
                     map.display(entity => entity
                         .propertyAt('geosparql#hasGeometry')
                         .then(property => property.propertyAt('geosparql#asWKT'))
-                        .then(property => parse(property.getContent())));
+                        .then(property => wkt(property.getContent())));
+                    map.layer(layer => {
+                        layer.evaluated(entity => entity);
+                    });
                 });
                 composite.text(text => {
                     text.when(entity => entity.hasProperty('ontology#population'));

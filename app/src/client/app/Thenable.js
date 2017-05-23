@@ -9,23 +9,33 @@ class Thenable {
             then: []
         };
 
-        if (typeof thenable == 'undefined') {
+        if (this.isUndefined(thenable)) {
             return;
         }
 
         thenable.then(result => {
             this.resolved = { result: result };
             this.state.then.forEach(then => {
-                if (typeof result != 'undefined') {
-                    if (typeof result.then != 'undefined') {
-                        result.then(then.resolved, then.rejected);
+                if (this.isUndefined(then.resolved)) {
+                    throw Error('then.resolved must not be undefined');
+                }
+
+                if (!this.isUndefined(result)) {
+                    if (!this.isUndefined(result.then)) {
+                        // here result is Thenable or polymorphic
+                        // we should unpack result recursively
+                        result.then((innerResult) => {
+                            then.result = then.resolved(innerResult);
+                            return then.resolved;
+                        }, then.rejected);
                     }
                     else {
-                        then.resolved(result);
+                        then.result = then.resolved(result);
                     }
                 }
                 else {
-                    then.resolved(result);
+                    // result is undefined
+                    then.result = then.resolved(result);
                 }
             });
             this.state.onCompleted.forEach(onCompleted => onCompleted());
@@ -43,16 +53,23 @@ class Thenable {
     }
 
     then(resolved, rejected, chain) {
-        if (typeof chain == 'undefined') {
+        if (this.isUndefined(chain)) {
             chain = true;
         }
 
         if (!this.isPending()) {
             if (this.isResolved()) {
+                if (!this.isFunction(resolved)) {
+                    return Thenable.resolve(this.resolved.result);
+                }
+                // now we can guarantee that resolved is function
+
+
                 var result = resolved(this.resolved.result);
+
                 if (chain) {
-                    if (typeof result != 'undefined') {
-                        if (typeof result.then != 'undefined') {
+                    if (!this.isUndefined(result)) {
+                        if (!this.isUndefined(result.then)) {
                             return new Thenable(result);
                         }
                         return Thenable.resolve(result);
@@ -61,6 +78,11 @@ class Thenable {
                 }
             }
             if (this.isRejected()) {
+                if (!this.isFunction(resolved)) {
+                    return Thenable.resolve(this.rejected.error);
+                }
+                // now we can guarantee that resolved is function
+
                 var error = rejected(this.rejected.error);
                 if (chain) {
                     return Thenable.reject(error);
@@ -68,18 +90,34 @@ class Thenable {
             }
         }
         else {
-            this.state.then.push({
+            if (!this.isFunction(resolved)) {
+                return Thenable.of((resolved, rejected) => {
+                    this.then((result) => resolved(result),rejected, false)
+                })
+            }
+            // now we can guarantee that resolved is function
+
+            var then = {
                 resolved: resolved,
                 rejected: rejected
-            });
+            };
+            this.state.then.push(then);
+
             if(chain) {
                 return Thenable.of((resolve, reject) => {
-                    this.then(result => {
-                        resolve(resolved(result));
-                    }, error => reject(error), false)
+                    // then.result will be already computed resolved result
+                    this.then(() => { resolve(then.result) }, reject, false)
                 });
             }
         }
+    }
+
+    isFunction(obj) {
+        return !!(obj && obj.constructor && obj.call && obj.apply);
+    }
+
+    isUndefined(obj) {
+        return typeof obj === 'undefined';
     }
 
     // is not called if completed
@@ -115,6 +153,13 @@ class Thenable {
 
     static of(aFunction) {
         return new Thenable({ then: aFunction });
+    }
+
+    static delay(milliseconds) {
+        return Thenable.of((resolve) => {
+            var start = Math.floor(Date.now());
+            setTimeout(() => resolve(Math.floor(Date.now()) - start), milliseconds);
+        });
     }
 }
 

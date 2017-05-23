@@ -8,7 +8,7 @@ import _ from 'underscore'
 
 class Sparql {
     static query (endpoint, query) {
-        console.log(endpoint,query);
+        //console.log(endpoint,query);
         return new Promise((resolve, reject) => {
             $.post(endpoint, { query: query }).done(function(data) {
                 try {
