@@ -3,16 +3,81 @@
  */
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 import PresentationComponent from './PresentationComponent';
 import Presentation from './Presentation';
-import { Table } from 'react-bootstrap';
-import TableColumn from './TableColumn';
-import _ from 'underscore'
+import { Table as BootstrapTable } from 'react-bootstrap';
+import { DataTable as MaterialTable } from 'react-mdl';
+import { TableHeader as MaterialTableHeader } from 'react-mdl';
 
-/**
- * this.state.displayedValue is cached value to support Promises
- */
-class TableComponent extends PresentationComponent {
+import TableColumn from './TableColumn';
+import _ from 'underscore';
+import $ from 'jquery';
+import camelCase from 'lodash/camelCase';
+
+
+class MaterialTableComponent extends PresentationComponent {
+    defaultDisplayedValue() {
+        return [];
+    }
+
+    handleStrongSelection(event) {
+        var target = event._targetInst;
+
+        while (!_.isEqual(target._tag, "tr") && !_.isEqual(target._tag, "table")) {
+            target = target._hostParent;
+        }
+
+        if (_.isEqual(target._tag, "table")) {
+            // clicked header
+            return;
+        }
+
+        var key = parseInt(target._currentElement.key);
+
+        this.presentation().strongSelected(this.displayedValue()[key]);
+        this.forceUpdate();
+    }
+
+    render() {
+        var values = this.displayedValue();
+        var columns = this.presentation().columns();
+
+        var rows = values.map(value =>
+            _.object(columns.map(column => {
+                return [camelCase(column.getName(this.entity())), column.getValue(this.presentation().transform(value))];
+            }))
+        );
+
+        return (<div style={{width: '100%', padding: '16pt'}}>
+            <MaterialTable
+                shadow={0}
+                rows={rows}
+                onClick={this.handleStrongSelection.bind(this)}
+                className={ this.presentation().showHeader() ? '' : 'mdl-data-table--no-header' }
+                style={{width: '100%'}}>{
+                columns.map((column, index) => (
+                    <MaterialTableHeader
+                        key={index}
+                        name={camelCase(column.getName(this.entity()))}>
+                            { column.getName(this.entity()) }
+                    </MaterialTableHeader>))}
+            </MaterialTable></div>);
+    }
+
+    componentDidUpdate() {
+        const table = $(ReactDOM.findDOMNode(this));
+        var values = this.displayedValue();
+        table
+            .find('tbody>tr')
+            .removeClass('is-selected')
+            .filter(index => _.isEqual(this.strongSelection(), values[index]))
+            .addClass('is-selected');
+    }
+}
+
+
+class BootstrapTableComponent extends PresentationComponent {
 
     defaultDisplayedValue() {
         return [];
@@ -28,8 +93,7 @@ class TableComponent extends PresentationComponent {
         var columns = this.presentation().columns();
 
         return (
-            <div>
-            <Table hover>
+            <BootstrapTable hover>
                 {this.presentation().showHeader() &&
                     <thead>
                     <tr>
@@ -40,8 +104,7 @@ class TableComponent extends PresentationComponent {
                 <tbody>
                     { values.map((value, index) => this.renderRow(value, index, columns)) }
                 </tbody>
-            </Table>
-            </div>
+            </BootstrapTable>
         );
     }
 
@@ -136,7 +199,7 @@ class TablePresentation extends Presentation {
     }
 
     render() {
-        return (<TableComponent bind={ this.bindings() }/>)
+        return (<MaterialTableComponent bind={ this.bindings() }/>)
     }
 }
 

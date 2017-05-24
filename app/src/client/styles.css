@@ -16,6 +16,14 @@ body {
     cursor: pointer
 }
 
+.mdl-data-table>tbody>tr {
+    cursor: pointer
+}
+
+.mdl-data-table--no-header>thead {
+    display: none;
+}
+
 .boundary {
     fill: #dddddd;
     stroke: #aaaaaa;

@@ -54,22 +54,6 @@ class LObject {
 
         this.extensions = [
             {
-                method: this.gtInspectorPropertiesIn.bind(this),
-                order: 10
-            },
-            {
-                method: this.gtInspectorMunicipalityLindasIn.bind(this),
-                order: 11
-            },
-            {
-                method: this.gtInspectorMunicipalityDBpediaIn.bind(this),
-                order: 12
-            },
-            {
-                method: this.gtInspectorMapIn.bind(this),
-                order: 20
-            },
-            {
                 method: this.gtInspectorCantonsIn.bind(this),
                 order: 30
             },
@@ -80,6 +64,22 @@ class LObject {
             {
                 method: this.gtInspectorMunicipalitiesIn.bind(this),
                 order: 30
+            },
+            {
+                method: this.gtInspectorMapIn.bind(this),
+                order: 20
+            },
+            {
+                method: this.gtInspectorPropertiesIn.bind(this),
+                order: 10
+            },
+            {
+                method: this.gtInspectorMunicipalityLindasIn.bind(this),
+                order: 11
+            },
+            {
+                method: this.gtInspectorMunicipalityDBpediaIn.bind(this),
+                order: 12
             },
             {
                 method: this.gtInspectorPolygonIn.bind(this),

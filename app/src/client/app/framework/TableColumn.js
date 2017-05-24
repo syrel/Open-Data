@@ -5,7 +5,7 @@
 class TableColumn {
     constructor(index) {
         this.state = {
-            named: entity => "Column",
+            named: entity => 'Column '+(index+1),
             evaluated: entity => entity,
             displayed: entity => entity,
             index: index

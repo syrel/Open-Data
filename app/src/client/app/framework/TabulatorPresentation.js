@@ -3,14 +3,16 @@
  */
 
 import React from 'react';
-import { Tabs } from 'react-mdl';
-import { Tab } from 'react-mdl';
+import { Tabs as MaterialTabs } from 'react-mdl';
+import { Tab as MaterialTab } from 'react-mdl';
+import { Tabs as BootstrapTabs } from 'react-bootstrap';
+import { Tab as BootstrapTab } from 'react-bootstrap';
+
 import CompositePresentation from './CompositePresentation';
 
-class TabulatorComponent extends CompositePresentation.CompositeComponent {
+class MaterialTabulatorComponent extends CompositePresentation.CompositeComponent {
     constructor(props) {
         super(props);
-
         this.state.activeTab = 0;
     }
 
@@ -21,13 +23,13 @@ class TabulatorComponent extends CompositePresentation.CompositeComponent {
     render() {
         return (
             <div>
-                <Tabs activeTab={this.state.activeTab} onChange={ tabId => this.handleSelect(tabId)} ripple>
+                <MaterialTabs activeTab={this.state.activeTab} onChange={ tabId => this.handleSelect(tabId)} ripple>
                     {
                         this.presentations().map((presentation, index) => (
-                            <Tab key={index}>{ presentation.getTitle() }</Tab>
+                            <MaterialTab key={index}>{ presentation.getTitle() }</MaterialTab>
                         ))
                     }
-                </Tabs>
+                </MaterialTabs>
                 <section>
                     <div key={this.state.activeTab} className="content"> { this.renderTab(this.state.activeTab) }</div>
                 </section>
@@ -45,15 +47,37 @@ class TabulatorComponent extends CompositePresentation.CompositeComponent {
     }
 }
 
+class BootstrapTabulatorComponent extends CompositePresentation.CompositeComponent {
+    constructor(props) {
+        super(props);
+
+        this.state.activeTab = 0;
+    }
+
+    handleSelect(activeTab) {
+        this.setState({activeTab});
+    }
+
+    render() {
+        return (
+            <BootstrapTabs activeKey={this.state.activeTab} onSelect={this.handleSelect.bind(this)} animation={false} id="tabulator">
+                {
+                    this.presentations().map((presentation, index) => (
+                        <BootstrapTab key={index} eventKey={index}
+                             title={ presentation.getTitle() }>{ presentation.render(index) }</BootstrapTab>
+                    ))
+                }
+            </BootstrapTabs>);
+    }
+}
+
 class TabulatorPresentation extends CompositePresentation {
     constructor(props) {
         super(props);
     }
-
     render(index) {
-        return (<TabulatorComponent key={index} bind={ this.bindings() }/>);
+        return (<MaterialTabulatorComponent key={index} bind={ this.bindings() }/>);
     }
 }
-
 
 export default TabulatorPresentation;
