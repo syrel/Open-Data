@@ -5,15 +5,29 @@ body {
 }
 
 .table>tbody>tr.Table-strongSelection {
-    background: #337ab7;
     color: white;
 }
 
 .table-hover>tbody>tr.Table-strongSelection:hover {
-    background-color: #337ab7;
     color: white;
 }
 
 .table>tbody>tr {
     cursor: pointer
+}
+
+.boundary {
+    fill: #dddddd;
+    stroke: #aaaaaa;
+    stroke-width: 1px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.feature {
+    fill: rgba(0,0,0,0);
+}
+
+.feature:hover {
+    fill: rgba(255, 151, 0, 0.31);
 }

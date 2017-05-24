@@ -46,7 +46,11 @@ class TableComponent extends PresentationComponent {
     }
 
     renderRow(value, valueIndex, columns) {
-        return (<tr key={valueIndex} value={value} onClick={() => this.handleStrongSelection(value) } className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection' : '') }>
+        return (<tr
+                    key={valueIndex}
+                    value={value}
+                    onClick={() => this.handleStrongSelection(value) }
+                    className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection mdl-color--primary' : '') }>
             { columns.map((column, columnIndex) =>
                 (<td key={columnIndex} style={{'wordWrap': 'break-all'}}>
                     {

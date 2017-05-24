@@ -31,6 +31,14 @@ class MapLayer {
         return this.state.displayed(this.state.evaluated(object));
     }
 
+    getEvaluated(object) {
+        return this.state.evaluated(object);
+    }
+
+    getDisplayed(object) {
+        return this.state.displayed(object);
+    }
+
     index() {
         return this.state.index;
     }
@@ -38,10 +46,7 @@ class MapLayer {
 
 class MapComponent extends PresentationComponent {
     defaultDisplayedValue() {
-        return {
-            "type": "MultiPolygon",
-            "coordinates": []
-        }
+        return null;
     }
 
     componentDidMount() {
@@ -64,16 +69,46 @@ class MapComponent extends PresentationComponent {
         }
 
         var value = this.displayedValue();
+        if (_.isNull(value)) {
+            return;
+        }
 
-        var projection = d3.geoMercator().fitSize([this.props.width, this.props.height], this.presentation().layers()[0].getValue(value));
+        var projection = d3.geoMercator().fitSize([this.props.width, this.props.height], this.presentation().layers()[0].getEvaluated(value));
         var path = d3.geoPath().projection(projection);
 
+        var color = d3.scaleLinear().domain([1,1181600])
+            .interpolate(d3.interpolateHcl)
+            .range([d3.rgb("#FFB3B7"), d3.rgb('#FF3533')]);
+
         this.presentation().layers().forEach(layer => {
-            svg.append("path")
-                .datum(layer.getValue(value))
-                .style("fill", "rgba(255,0,0,0.5)")
-                .style("stroke", "rgba(200,0,0,1)")
-                .attr("d", path);
+            var data = layer.getValue(value);
+            if (!_.isUndefined(data)) {
+                svg.append("path")
+                    .datum(layer.getEvaluated(value))
+                    .attr("class", "boundary")
+                    .attr("d", path);
+                svg.append("g")
+                    .selectAll("path")
+                    .data(data)
+                    .enter().append("path")
+                    .attr("class", "feature")
+                    .style("fill", d => {
+                        var area = 0;
+                        d.properties.unit.propertyValueAt('ontology#population').then(result => area = result);
+                        return color(area);
+                    })
+                    .attr("d", path)
+                    // .on('mouseover', (d, i) => {
+                    //     console.log('mouseover', d, i);
+                    // })
+                    // .on('mousemove', (d, i) => {
+                    //     console.log('mousemove', d, i);
+                    // })
+                    // .on('mouseout', (d,i) => {
+                    //     console.log('mouseout', d, i);
+                    // })
+                    .on('click', entity => this.presentation().strongSelected(entity));
+            }
         });
 
     }

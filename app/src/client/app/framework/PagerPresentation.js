@@ -15,10 +15,10 @@ class PagerComponent extends CompositePresentation.CompositeComponent {
 
     render() {
         return (
-            <div style={{whiteSpace: 'nowrap', overflowX: 'auto'}}>
+            <div style={{whiteSpace: 'nowrap', overflowY: 'auto', overflowX: 'auto', height: '100%', maxHeight: '100%', position: 'absolute', width: '100%'}}>
                 {
                     this.presentations().map((presentation, index) => (
-                        <div ref={"pane"+index} key={index} style={{minWidth: '40%', maxWidth: '60%', maxHeight: '93%', overflowY: 'auto', display: 'inline-block', verticalAlign: 'top'}}>
+                        <div ref={"pane"+index} key={index} style={{minWidth: '40%', maxWidth: '60%', maxHeight: '100%', overflowY: 'auto', display: 'inline-block', verticalAlign: 'top'}}>
                             { presentation.render() }
                         </div>
                     ))

@@ -3,7 +3,7 @@
  */
 
 import $ from 'jquery';
-import xml2json from 'jquery-xml2json'
+import 'jquery-xml2json'
 import _ from 'underscore'
 
 class Sparql {
@@ -13,13 +13,14 @@ class Sparql {
             $.post(endpoint, { query: query }).done(function(data) {
                 try {
                     // extract headers out of xml
-                    var json = xml2json(data);
+                    var json = $.xml2json(data);
                     var result = json['#document'].sparql.results.result;
                     if (_.isUndefined(result)) {
                         result = [];
                     }
                     resolve(result);
                 } catch (e) {
+                    console.error(e);
                     //reject(Error("Failed to parse response"));
                 }
             }).fail(function(error) {
