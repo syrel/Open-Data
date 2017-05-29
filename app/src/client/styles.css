@@ -51,9 +51,24 @@ body {
 }
 
 .feature {
+    transition: fill .25s ease;
     fill: rgba(0,0,0,0);
+    cursor: pointer
 }
 
-.feature:hover {
+.feature.hovered {
     fill: rgba(255, 151, 0, 0.31);
+}
+
+.feature.selected {
+    fill: rgba(255, 0, 0, 0.31);
+}
+
+text.label {
+    pointer-events: none;
+    fill: #323232;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: lighter;
+    font-size: 7pt;
+    /*text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);*/
 }

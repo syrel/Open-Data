@@ -7,6 +7,7 @@ import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import $ from 'jquery';
 import CompositePresentation from './CompositePresentation';
+import Thenable from './../Thenable'
 
 class PagerComponent extends CompositePresentation.CompositeComponent {
     constructor(props) {
@@ -15,10 +16,10 @@ class PagerComponent extends CompositePresentation.CompositeComponent {
 
     render() {
         return (
-            <div style={{whiteSpace: 'nowrap', overflowX: 'auto', height: '100%', position: 'absolute', width: '100%'}}>
+            <div style={{ whiteSpace: 'nowrap', overflowX: 'auto', height: '100%', position: 'absolute', width: '100%' }}>
                 {
                     this.presentations().map((presentation, index) => (
-                        <div ref={"pane"+index} key={index} style={{minWidth: '40%', maxWidth: '60%', height: '100%', display: 'inline-block', verticalAlign: 'top'}}>
+                        <div ref={ 'pane' + index } key={index} style={{ minWidth: '45%', maxWidth: '45%', height: '100%', display: 'inline-block', verticalAlign: 'top' }}>
                             { presentation.render() }
                         </div>
                     ))
@@ -36,17 +37,14 @@ class PagerComponent extends CompositePresentation.CompositeComponent {
             return;
         }
 
-
-        const pane = this.refs["pane" + (this.presentations().length-1)];
+        const pane = this.refs['pane' + (this.presentations().length-1)];
         const pager = ReactDOM.findDOMNode(this);
 
-        if($(pane).offset().left < $(pager).scrollLeft()) {
-            return;
-        }
-
-        $(pager).animate({
-             scrollLeft: $(pane).offset().left
-        }, 350);
+        Thenable.delay(50).then(() => {
+            $(pager).animate({
+                scrollLeft: $(pager).scrollLeft() + $(pane).offset().left + $(pane).width()
+            }, 750);
+        });
     }
 }
 

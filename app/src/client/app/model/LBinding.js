@@ -47,6 +47,13 @@ class LBinding {
             }, error => reject(error))
         });
     }
+
+    /**
+     * @returns {Thenable}
+     */
+    propertyValueAt(aName) {
+        return this.propertyAt(aName).then(property => property.getContent());
+    }
 }
 
 export default LBinding;

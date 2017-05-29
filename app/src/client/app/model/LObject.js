@@ -2,6 +2,7 @@
  * Created by syrel on 15.05.17.
  */
 
+import React from 'react';
 import Sparql from '../Sparql'
 import template from '../template'
 import LEndpoint from './LEndpoint'
@@ -11,6 +12,7 @@ import Thenable from './../Thenable'
 import CardPresentation from './../framework/CardPresentation';
 import { parse as wkt } from 'wellknown'
 import _ from 'underscore'
+import geometry from './../geometry';
 
 const ALL_PROPERTIES_QUERY = template`SELECT ?property ?value
 { 
@@ -20,6 +22,13 @@ const ALL_PROPERTIES_QUERY = template`SELECT ?property ?value
 // ${0} type of children
 // ${1} type of parent
 // ${2} parent object
+// Example:
+// SELECT ?AdminUnit
+//     WHERE {
+//     ?AdminUnit a <http://www.geonames.org/ontology#A.ADM1>.
+//     ?AdminUnit <http://www.geonames.org/ontology#parentCountry> ?InParent.
+//     FILTER (?InParent = <https://ld.geo.admin.ch/boundaries/country/CH:2017>)
+// }
 const CHILDREN_QUERY = template`SELECT ?AdminUnit ?Name
 WHERE {
   ?AdminUnit a <${0}>.
@@ -29,13 +38,6 @@ WHERE {
 }
 ORDER BY ASC(?Name)`;
 
-// Example:
-// SELECT ?AdminUnit
-//     WHERE {
-//     ?AdminUnit a <http://www.geonames.org/ontology#A.ADM1>.
-//     ?AdminUnit <http://www.geonames.org/ontology#parentCountry> ?InParent.
-//     FILTER (?InParent = <https://ld.geo.admin.ch/boundaries/country/CH:2017>)
-// }
 
 
 // ${0} bfs number of municipality
@@ -60,15 +62,15 @@ class LObject {
             },
             {
                 method: this.gtInspectorCantonsIn.bind(this),
-                order: 30
+                order: 10
             },
             {
                 method: this.gtInspectorDistrictsIn.bind(this),
-                order: 30
+                order: 10
             },
             {
                 method: this.gtInspectorMunicipalitiesIn.bind(this),
-                order: 30
+                order: 10
             },
             {
                 method: this.gtInspectorMapIn.bind(this),
@@ -76,15 +78,15 @@ class LObject {
             },
             {
                 method: this.gtInspectorPropertiesIn.bind(this),
-                order: 10
+                order: 30
             },
             {
                 method: this.gtInspectorMunicipalityLindasIn.bind(this),
-                order: 11
+                order: 31
             },
             {
                 method: this.gtInspectorMunicipalityDBpediaIn.bind(this),
-                order: 12
+                order: 32
             },
             {
                 method: this.gtInspectorPolygonIn.bind(this),
@@ -374,6 +376,27 @@ class LObject {
         return this.cache[id];
     }
 
+    children() {
+        return Thenable.of((resolve, reject) => {
+            this.isCountry().then(isCountry => {
+                if (isCountry) {
+                    resolve(this.cantons());
+                }
+                else this.isCanton().then(isCanton => {
+                    if (isCanton) {
+                        resolve(this.districts())
+                    }
+                    else this.isDistrict().then(isDistrict => {
+                        if (isDistrict) {
+                            resolve(this.municipalities())
+                        }
+                        else resolve([])
+                    }, reject)
+                }, reject)
+            }, reject);
+        });
+    }
+
     hasDBpedia() {
         return this.hasPropertyContaining('owl#sameAs', 'dbpedia.org');
     }
@@ -390,9 +413,11 @@ class LObject {
 
     gtInspectorPropertiesIn(composite) {
         composite.table(table => {
-            table.title(() => "Properties");
+            table.title(() => 'Geo Properties');
             table.withHeader();
-            table.display(entity => entity.properties());
+            table.display(entity => {
+                return entity.properties()});
+
             table.strongTransmit(binding => binding.getValue());
             table.column(column => {column
                     .named(() => 'Property')
@@ -423,58 +448,61 @@ class LObject {
                 composite.title(entity => 'Map');
                 composite.when(entity => entity.hasProperty('geosparql#hasGeometry'));
 
-                composite.text(text => {
-                    text.when(entity => entity.hasProperty('name'));
-                    text.beHeader(2);
-                    text.display(entity => entity
-                        .propertyAt('name')
-                        .then(property => property.getContent()));
-                });
-                // composite.map(map => {
-                //     map.when(entity => entity.hasProperty('geosparql#hasGeometry'));
-                //     map.display(entity => entity
-                //         .propertyAt('geosparql#hasGeometry')
-                //         .then(property => property.propertyAt('geosparql#asWKT'))
-                //         .then(property => wkt(property.getContent())));
-                //     map.layer(layer => {
-                //         layer.evaluated(entity => entity);
-                //     });
-                // });
                 composite.compose(CardPresentation, card => {
-                    card.map(map => {
+                    card.content(content => content.map(map => {
                         map.when(entity => entity.hasProperty('geosparql#hasGeometry'));
-                        map.display(entity => entity
-                            .propertyAt('geosparql#hasGeometry')
-                            .then(property => property.propertyAt('geosparql#asWKT'))
-                            .then(property => wkt(property.getContent())));
-                        map.layer(layer => {
-                            layer.evaluated(entity => entity);
+                        map.defaultDisplay(() => {
+                            return {
+                                unit: {
+                                    type: 'MultiPolygon',
+                                    coordinates: [],
+                                    properties: {}
+                                },
+                                children: {
+                                    type: 'FeatureCollection',
+                                    features: [],
+                                    properties: {}
+                                }
+                            }
+                        });
+                        var geo = geometry(
+                            'geosparql#hasGeometry',
+                            'geosparql#asWKT',
+                            child => child.propertyValueAt('name'));
+
+                        map.display(entity => geo(entity, entity => entity.children()));
+                        map.path(layer => { layer
+                            .when(entity => entity.children.features.length == 0)
+                            .display(entity => entity.unit)
+                            .evaluated(geo => geo)
+                            .labeled(feature => feature.properties.data)
+                            .selected(feature => feature.properties.unit)
+                        });
+                        map.path(layer => { layer
+                            .display(entity => entity.children)
+                            .evaluated(geo => geo.features)
+                            .labeled(feature => feature.properties.data)
+                            .selected(feature => feature.properties.unit)
+                        });
+                    }));
+
+                    card.named(entity => entity.propertyValueAt('name'));
+                    card.text(text => {
+                        text.when(entity => entity.hasProperty('ontology#population'));
+                        text.display(entity => Thenable.multiple({
+                            population: entity.propertyValueAt('ontology#population'),
+                            area: entity.propertyValueAt('area'),
+                            lakeArea: entity.propertyValueAt('lakeArea')
+                        }));
+                        text.format(data => {
+                            var br = React.createElement('br');
+                            return (<div>
+                                Population: { data.population  } { br }
+                                Area:  { (parseInt(data.area) / 100.0) + ' km²' } { br }
+                                Lake area:  { (parseInt(data.lakeArea) / 100.0) + ' km²' } { br }
+                            </div>);
                         });
                     });
-                });
-                composite.text(text => {
-                    text.when(entity => entity.hasProperty('ontology#population'));
-                    text.beParagraph(14);
-                    text.display(entity => entity
-                        .propertyAt('ontology#population')
-                        .then(property => property.getContent()));
-                    text.format(string => 'Population: ' + string);
-                });
-                composite.text(text => {
-                    text.when(entity => entity.hasProperty('area'));
-                    text.beParagraph(14);
-                    text.display(entity => entity
-                        .propertyAt('area')
-                        .then(property => property.getContent()));
-                    text.format(string => 'Area: ' + (parseInt(string) / 100.0) + ' km²');
-                });
-                composite.text(text => {
-                    text.when(entity => entity.hasProperty('lakeArea'));
-                    text.beParagraph(14);
-                    text.display(entity => entity
-                        .propertyAt('lakeArea')
-                        .then(property => property.getContent()));
-                    text.format(string => 'Lake area: ' + (parseInt(string) / 100.0) + ' km²');
                 });
             });
     }
@@ -543,7 +571,7 @@ class LObject {
     gtInspectorMunicipalityLindasIn(composite) {
         composite.table(table => {
             table.when(entity => entity.isMunicipality());
-            table.title(() => "Lindas");
+            table.title(() => "Lindas Properties");
             table.withHeader();
             table.display(entity => entity
                 .propertyAt('bfsNumber')
@@ -563,7 +591,7 @@ class LObject {
 
     gtInspectorMunicipalityDBpediaIn(composite) {
         composite.table(table => {
-            table.title(() => "DBpedia");
+            table.title(() => "DBpedia Properties");
             table.when(entity => entity
                 .isMunicipality()
                 .then(result => result

@@ -2,6 +2,9 @@
  * Created by syrel on 21.05.17.
  */
 
+import Rx from 'rxjs';
+import _ from 'underscore';
+
 class Thenable {
     /**
      * Default value is optional value that is returned by get() until thenable is not resolved
@@ -250,6 +253,69 @@ class Thenable {
             return new Thenable(anObject, defaultBlock);
         }
         return Thenable.resolve(anObject);
+    }
+
+    static multiple(map) {
+        if(_.isArray(map)) {
+            return Thenable.multipleArray(map);
+        }
+        return Thenable.multipleObject(map);
+    }
+
+    static multipleArray(array) {
+        return Thenable.of((resolve, reject) => {
+            var errors = [];
+            var results = [];
+
+            Rx.Observable.from(array.map(each => Thenable.of(each))).concatMap(each => each)
+                .subscribe(
+                    result => {
+                        results.push(result);
+                    },
+                    err => {
+                        console.error(err);
+                        errors.push(err);
+                    },
+                    () => {
+                        if (errors.length == 0) {
+                            resolve(results);
+                        }
+                        else {
+                            reject(errors);
+                        }
+                    });
+        })
+    }
+
+    static multipleObject(map) {
+        return Thenable.of((resolve, reject) => {
+
+            var errors = [];
+
+            var pairs = _.pairs(map);
+            var keys = _.map(pairs, pair => pair[0]);
+            var thenables = _.map(pairs, pair => Thenable.of(pair[1]));
+
+            var results = [];
+
+            Rx.Observable.from(thenables).concatMap(each => each)
+                .subscribe(
+                    result => {
+                        results.push([ keys[results.length], result]);
+                    },
+                    err => {
+                        console.error(err);
+                        errors.push(err);
+                    },
+                    () => {
+                        if (errors.length == 0) {
+                            resolve(_.object(results));
+                        }
+                        else {
+                            reject(errors);
+                        }
+                    });
+        });
     }
 
     static delay(milliseconds, defaultBlock) {

@@ -55,6 +55,18 @@ class Header extends TextType {
     }
 }
 
+class Custom extends TextType {
+    constructor(component, attributes) {
+        super();
+        this.component = component;
+        this.attributes = attributes;
+    }
+
+    render(block) {
+        return React.createElement(this.component, this.attributes, block());
+    }
+}
+
 class TextComponent extends PresentationComponent {
 
     constructor(props) {
@@ -67,23 +79,9 @@ class TextComponent extends PresentationComponent {
         );
     }
 
-
     defaultDisplayedValue() {
-        //return 'Loading...';
+        return '';
     }
-    //
-    // // formattedValue() {
-    // //     return this.presentation().formatted(this.displayedValue());
-    // // }
-    //
-    // formattedThenable() {
-    //     return this.presentation().formattedValue(this.displayedThenable());
-    //
-    //     // return this.presentationProperty (
-    //     //     presentation => presentation.formattedValue(this.displayedValue()),
-    //     //     presentation => '',
-    //     //     'formattedValue');
-    // }
 
     render() {
         return this.presentation().type().renderComponent(this);
@@ -100,16 +98,24 @@ class TextPresentation extends Presentation {
         });
     }
 
+    beCustom(component, attributes) {
+        this.state.type = new Custom(component, attributes);
+        return this;
+    }
+
     beParagraph(fontSize) {
         this.state.type = new Paragraph(fontSize);
+        return this;
     }
 
     beHeader(level) {
         this.state.type = new Header(level);
+        return this;
     }
 
     bePreformatted(fontSize) {
         this.state.type = new Preformatted(fontSize);
+        return this;
     }
 
     type() {

@@ -131,7 +131,10 @@ class CompositePresentation extends Presentation {
     }
 
     compose(presentationClass, block) {
-        var presentation = new presentationClass();
+        return this.composeNew(new presentationClass(), block);
+    }
+
+    composeNew(presentation, block) {
         this.add(presentation);
         if (!_.isUndefined(block))
             block(presentation);

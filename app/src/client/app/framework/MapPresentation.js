@@ -9,11 +9,15 @@ import Presentation from './Presentation';
 import _ from 'underscore'
 
 class MapLayer {
-    constructor(index) {
+    constructor(index, presentation) {
         this.state = {
             evaluated: entity => entity,
             displayed: entity => entity,
-            index: index
+            selected: entity => entity,
+            when: entity => true,
+            labeled: value => '',
+            index: index,
+            presentation: presentation
         }
     }
 
@@ -27,8 +31,23 @@ class MapLayer {
         return this;
     }
 
-    getValue(object) {
-        return this.state.displayed(this.state.evaluated(object));
+    when(block) {
+        this.state.when = block;
+        return this;
+    }
+
+    labeled(block) {
+        this.state.labeled = block;
+        return this;
+    }
+
+    selected(block) {
+        this.state.selected = block;
+        return this;
+    }
+
+    getData(object) {
+        return this.state.evaluated(this.state.displayed(object));
     }
 
     getEvaluated(object) {
@@ -39,15 +58,93 @@ class MapLayer {
         return this.state.displayed(object);
     }
 
+    getLabel(object) {
+        return this.state.labeled(object);
+    }
+
+    getSelected(object) {
+        return this.state.selected(object);
+    }
+
+    presentation() {
+        return this.state.presentation;
+    }
+
     index() {
         return this.state.index;
+    }
+
+    /**
+     * @param {Object} context - specification of rendering context
+     * @param {Selection} context.svg - svg to render on
+     * @param {int} context.width - svg width
+     * @param {int} context.height - svg height
+     * @param {Object} context.entity - presentation's displayed value
+     * @param {Object} context.data - result of this.getData(entity)
+     * @param {Object} context.datum - result of this.getDisplayed(entity)
+     */
+    renderOn(context) {
+        throw Error('Subclass responsibility');
+    }
+}
+
+
+class PathLayer extends MapLayer {
+    constructor(index, presentation) {
+        super(index, presentation);
+    }
+
+    /**
+     * @param {Object} context - specification of rendering context
+     * @param {Selection} context.svg - svg to render on
+     * @param {int} context.width - svg width
+     * @param {int} context.height - svg height
+     * @param {Object} context.entity - presentation's displayed value
+     * @param {Object} context.data - result of this.getData(entity)
+     * @param {Object} context.datum - result of this.getDisplayed(entity)
+     */
+    renderOn(context) {
+        var projection = d3.geoMercator().fitSize([context.width, context.height], context.datum);
+        var path = d3.geoPath().projection(projection);
+        var svg = context.svg;
+
+        svg.append('path')
+            .datum(context.datum)
+            .attr("class", "boundary")
+            .attr("d", path);
+
+        svg.append("g")
+            .selectAll("path")
+            .data(context.data)
+            .enter().append("path")
+            .attr("class", "feature")
+            .classed('selected', value => this.getSelected(value) === this.presentation().strongSelection())
+            .attr("d", path)
+            .on('mouseover', (value, index, paths) => {
+                d3.select(paths[index]).classed('hovered', true);
+            })
+            .on('mouseout', (value, index, paths) => {
+                d3.select(paths[index]).classed('hovered', false);
+            })
+            .on('click', value => {
+                this.presentation().strongSelected(this.getSelected(value))
+            });
+
+        var labels = svg.append('g').attr('class', 'labels');
+        labels
+            .selectAll('.label')
+            .data(context.data)
+            .enter()
+            .append('text')
+            .attr('class', 'label')
+            .attr('transform', d => 'translate(' + path.centroid(d) + ')')
+            .style('text-anchor', 'middle')
+            .on('mouseover', null).on('mouseout', null)
+            .text(value => this.getLabel(value));
     }
 }
 
 class MapComponent extends PresentationComponent {
-    defaultDisplayedValue() {
-        return null;
-    }
 
     componentDidMount() {
         this.renderMap();
@@ -57,64 +154,47 @@ class MapComponent extends PresentationComponent {
         this.renderMap();
     }
 
+    layers() {
+        var value = this.displayedValue();
+        return this.presentation().layers().filter(layer => layer.state.when(value));
+    }
+
     renderMap() {
         var svg = d3.select(this.refs.svg)
-            .attr("width", this.props.width)
-            .attr("height", this.props.height);
+            .attr('width', this.props.width)
+            .attr('height', this.props.height);
 
-        svg.selectAll("*").remove();
+        svg.selectAll('*').remove();
 
-        if (this.presentation().layers().length == 0) {
+        var layers = this.layers();
+        if (layers.length == 0) {
            return;
         }
 
-        var value = this.displayedValue();
-        if (_.isNull(value)) {
-            return;
-        }
-
-        var projection = d3.geoMercator().fitSize([this.props.width, this.props.height], this.presentation().layers()[0].getEvaluated(value));
-        var path = d3.geoPath().projection(projection);
-
-        var color = d3.scaleLinear().domain([1,1181600])
-            .interpolate(d3.interpolateHcl)
-            .range([d3.rgb("#FFB3B7"), d3.rgb('#FF3533')]);
-
-        this.presentation().layers().forEach(layer => {
-            var data = layer.getValue(value);
-            if (!_.isUndefined(data)) {
-                svg.append("path")
-                    .datum(layer.getEvaluated(value))
-                    .attr("class", "boundary")
-                    .attr("d", path);
-                svg.append("g")
-                    .selectAll("path")
-                    .data(data)
-                    .enter().append("path")
-                    .attr("class", "feature")
-                    .style("fill", d => {
-                        var area = 0;
-                        d.properties.unit.propertyValueAt('ontology#population').then(result => area = result);
-                        return color(area);
-                    })
-                    .attr("d", path)
-                    // .on('mouseover', (d, i) => {
-                    //     console.log('mouseover', d, i);
-                    // })
-                    // .on('mousemove', (d, i) => {
-                    //     console.log('mousemove', d, i);
-                    // })
-                    // .on('mouseout', (d,i) => {
-                    //     console.log('mouseout', d, i);
-                    // })
-                    .on('click', entity => this.presentation().strongSelected(entity));
-            }
-        });
-
+        var displayedValue = this.displayedValue();
+        layers
+            .map(layer => {
+                return {
+                    layer: layer,
+                    data: layer.getData(displayedValue),
+                    entity: displayedValue
+                }
+            })
+            .filter(spec => !_.isUndefined(spec.data))
+            .forEach(spec =>
+                spec.layer.renderOn({
+                    svg: svg,
+                    width: this.props.width,
+                    height: this.props.height,
+                    entity: spec.entity,
+                    data: spec.data,
+                    datum: spec.layer.getDisplayed(spec.entity)
+                })
+            );
     }
 
     render() {
-        return <svg width={this.props.width} height={this.props.height} ref="svg"></svg>
+        return <svg width={ this.props.width } height={ this.props.height } ref="svg" style={{ display: 'block', margin: 'auto' }}/>
     }
 }
 
@@ -128,20 +208,20 @@ class MapPresentation extends Presentation {
         });
     }
 
-    layer(block) {
-        let layer = new MapLayer(this.state.layers.length);
-        this.state.layers.push(layer);
+    path(block) {
+        let pathLayer = new PathLayer(this.state.layers.length, this);
+        this.state.layers.push(pathLayer);
         if (!_.isUndefined(block))
-            block(layer);
-        return layer;
+            block(pathLayer);
+        return pathLayer;
     }
 
     layers() {
         return this.state.layers;
     }
 
-    render(entity) {
-        return (<MapComponent bind={ this.bindings() } width={600} height={400}/>)
+    render(index) {
+        return (<MapComponent key={ index } bind={ this.bindings() } width={600} height={500}/>)
     }
 }
 

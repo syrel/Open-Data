@@ -13,7 +13,7 @@ class Inspector extends Browser {
         this.when('strongSelection', event => {
             var pagerPane = this.composite.paneOf(event.presentation);
             this.composite.popAfter(pagerPane);
-            this.addPane(event.entity);
+            this.addPane(event.entity, pagerPane.selectedTab());
             this.composite.scrollToLast();
         });
     }
@@ -23,10 +23,12 @@ class Inspector extends Browser {
         this.composite.on(entity);
     }
 
-    addPane(entity) {
-        var tabulator = new TabulatorPresentation();
-        this.composite.add(tabulator);
+    addPane(entity, defaultTab) {
+        var tabulator = new TabulatorPresentation({
+            defaultTab: defaultTab
+        });
         tabulator.openOn(entity);
+        this.composite.add(tabulator);
     }
 }
 

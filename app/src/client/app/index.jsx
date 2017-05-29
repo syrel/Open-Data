@@ -36,65 +36,7 @@ import { parse as wkt } from 'wellknown'
 
 import './extensions';
 import template from './template';
-
-var geometry = (object, childrenBlock) => {
-    var children = Thenable.of((resolved, rejected) => childrenBlock(object).then(units => {
-        var geometries = units.map(unit => unit
-            .propertyAt('geosparql#hasGeometry')
-            .then(property => property.propertyAt('geosparql#asWKT'))
-            .then(property => { return {
-                unit: unit,
-                geometry: wkt(property.getContent())
-            }}));
-
-        var geo = {
-            type: "FeatureCollection",
-            features: []
-        };
-
-        var error = false;
-        Rx.Observable.from(geometries).concatMap(each => each)
-            .subscribe(
-                each => geo.features.push({
-                    type: "Feature",
-                    geometry: each.geometry,
-                    properties: { unit: each.unit }
-                }),
-                err => {
-                    error = true;
-                    console.error(err);
-                },
-                () => {
-                    if (!error) {
-                        resolved(geo);
-                    }
-                });
-    }));
-
-    var unitGeometry = object
-        .propertyAt('geosparql#hasGeometry')
-        .then(property => property.propertyAt('geosparql#asWKT'))
-        .then(property => wkt(property.getContent()));
-
-    return Thenable.of(resolved => {
-        var results = [];
-        var error = false;
-        Rx.Observable.from([unitGeometry, children]).concatMap(each => each)
-            .subscribe(
-                each => results.push(each),
-                err => {
-                    error = true;
-                    console.error(err);
-                },
-                () => {
-                    if (!error) {
-                        resolved({
-                            unit: results[0],
-                            children: results[1]
-                        });
-                    }
-                })});
-};
+import geometry from './geometry';
 
 class App extends React.Component {
     constructor(props) {
@@ -168,10 +110,19 @@ class App extends React.Component {
 
 
         // this.map = new MapPresentation();
-        // this.map.display(entity => geometry(country, country => country.cantons()));
+        // this.map.defaultDisplay(() => {
+        //     return {
+        //         unit: {},
+        //         children: []
+        //     }
+        // });
+        // this.map.display(entity => geometry('geosparql#hasGeometry', 'geosparql#asWKT')(country, country => country.cantons()));
         // this.map.layer(layer => { layer
-        //     .evaluated(entity => entity.children)
-        //     .display(geo => geo.features);
+        //     .display(entity => {
+        //         //console.log(entity);
+        //         return entity.children
+        //     })
+        //     .evaluated(geo => geo.features);
         // });
         // this.map.on(canton);
 

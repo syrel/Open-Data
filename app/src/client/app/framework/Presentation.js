@@ -6,16 +6,18 @@ import React from 'react';
 import _ from 'underscore'
 import Thenable from './../Thenable'
 
+
 class Presentation {
     constructor(props) {
         this.state = {
             of: entity => entity,
-            displayed: (entity) => Thenable.resolve(entity),
+            displayed: entity => Thenable.resolve(entity),
+            defaultDisplayed: entity => _.noop(),
             title: (entity) => "Presentation",
             when: (entity) => Thenable.resolve(true),
             bindings: {
                 presentation: this,
-                entity: null,
+                entity: _.noop(),
                 component: null
             },
             strongSelection: null,
@@ -29,6 +31,11 @@ class Presentation {
 
     display(block) {
         this.state.displayed = block;
+        return this;
+    }
+
+    defaultDisplay(block) {
+        this.state.defaultDisplayed = block;
         return this;
     }
 
@@ -55,6 +62,10 @@ class Presentation {
      */
     displayedValue() {
         return Thenable.of(this.state.displayed(this.state.of(this.entity())));
+    }
+
+    defaultDisplayedValue() {
+        return this.state.defaultDisplayed(this.state.of(this.entity()));
     }
 
     title(block) {
@@ -85,7 +96,7 @@ class Presentation {
     }
 
     hasEntity() {
-        return this.entity() != null;
+        return !_.isUndefined(this.entity()) && !_.isNull(this.entity());
     }
 
     /**
@@ -184,7 +195,6 @@ class Presentation {
     render() {
         throw new Error('Subclass responsibility!');
     }
-
 
 }
 

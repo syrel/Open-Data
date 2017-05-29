@@ -10,21 +10,17 @@ class LGeoCountry extends LObject {
 
         this.extensions = [
             {
-                method: this.gtInspectorPropertiesIn.bind(this),
-                order: 10
-            },
-            {
                 method: this.gtInspectorVersionsIn.bind(this),
-                order: 15
+                order: 10
             },
             {
                 method: this.gtInspectorMapIn.bind(this),
                 order: 20
             },
             {
-                method: this.gtInspectorCantonsIn.bind(this),
+                method: this.gtInspectorPropertiesIn.bind(this),
                 order: 30
-            }
+            },
         ]
     }
 
