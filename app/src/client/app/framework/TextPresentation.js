@@ -7,7 +7,7 @@ import React from 'react';
 import PresentationComponent from './PresentationComponent';
 import Presentation from './Presentation';
 import _ from 'underscore'
-
+import Thenable from '../Thenable'
 
 
 class TextType {
@@ -55,17 +55,35 @@ class Header extends TextType {
     }
 }
 
-
-
 class TextComponent extends PresentationComponent {
 
-    defaultDisplayedValue() {
-        return '';
+    constructor(props) {
+        super(props);
+
+        this.property (
+            () => this.displayedThenable().then(result => this.presentation().state.formatted(result)),
+            () => _.noop(),
+            'formatted'
+        );
     }
 
-    formattedValue() {
-        return this.presentation().formatted(this.displayedValue());
+
+    defaultDisplayedValue() {
+        //return 'Loading...';
     }
+    //
+    // // formattedValue() {
+    // //     return this.presentation().formatted(this.displayedValue());
+    // // }
+    //
+    // formattedThenable() {
+    //     return this.presentation().formattedValue(this.displayedThenable());
+    //
+    //     // return this.presentationProperty (
+    //     //     presentation => presentation.formattedValue(this.displayedValue()),
+    //     //     presentation => '',
+    //     //     'formattedValue');
+    // }
 
     render() {
         return this.presentation().type().renderComponent(this);
@@ -110,8 +128,13 @@ class TextPresentation extends Presentation {
         return this;
     }
 
-    formatted(object) {
-        return this.state.formatted(object);
+    /**
+     * Returns a formatted value of a given entity
+     * @param aThenable
+     * @returns {Thenable}
+     */
+    formattedValue(entity) {
+        return Thenable.of(entity).then(value => this.state.formatted(value));
     }
 
     render(index) {

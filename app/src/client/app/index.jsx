@@ -29,11 +29,13 @@ import LEndpoint from './model/LEndpoint';
 import LGeoEndpoint from './model/geo/LGeoEndpoint';
 import LObject from './model/LObject';
 import MapPresentation from './framework/MapPresentation'
+import TextPresentation from './framework/TextPresentation'
 import Thenable from './Thenable';
 
 import { parse as wkt } from 'wellknown'
 
 import './extensions';
+import template from './template';
 
 var geometry = (object, childrenBlock) => {
     var children = Thenable.of((resolved, rejected) => childrenBlock(object).then(units => {
@@ -111,13 +113,67 @@ class App extends React.Component {
         var country = new LObject(endpoint, 'https://ld.geo.admin.ch/boundaries/country/CH:2017');
         var canton = new LObject(endpoint, 'https://ld.geo.admin.ch/boundaries/canton/2:2017', 'Bern');
 
-        this.map = new MapPresentation();
-        this.map.display(entity => geometry(country, country => country.cantons()));
-        this.map.layer(layer => { layer
-            .evaluated(entity => entity.children)
-            .display(geo => geo.features);
-        });
-        this.map.on(canton);
+
+        // var num = 1000;
+        //
+        //
+        // var display = Thenable.delay(2500, () => num++)
+        //     .then(delay => 'My value: ' + delay + ' >')
+        //     .then(delay => delay + '>')
+        //     .then(delay => delay + '>')
+        //     .then(delay => delay + ' >')
+        //     .then(delay => delay + '>')
+        //     .then(delay => delay + '>')
+        //     .then(delay => delay + ' >')
+        //     .then(delay => delay + '>')
+        //     .then(delay => delay + '>');
+        //
+        //
+        // console.log(display.get());
+        // console.log(display.get());
+        // console.log(display.get());
+        // console.log(display.get());
+        //
+        // display.then(result => console.log(result));
+        //
+        // display.onCompleted(() => {
+        //     console.log('Done!');
+        //
+        //     console.log(display.get());
+        //     console.log(display.get());
+        //     console.log(display.get());
+        //     console.log(display.get());
+        // });
+
+        // var format = Thenable.delay(1000)
+        //     .then((formatDelay) => display.then(displayDelay => '('+displayDelay+'+'+formatDelay+')ms'));
+
+        // this.text = new TextPresentation();
+        // this.text.display(entity => Thenable.of((resolved) => {
+        //     //alksufhlasufl
+        //     var data = [];
+        //     resolved(data);
+        // }), []);
+        // this.text.format(delay => template`(${0} + ${1})ms`(delay, 3000));
+        // this.text.on(5000);
+
+        // console.log('Before');
+        //
+        // var promise = Promise.resolve(10);
+        // promise.then(result => {
+        //     console.log('Result:', result);
+        // });
+        //
+        // console.log('After');
+
+
+        // this.map = new MapPresentation();
+        // this.map.display(entity => geometry(country, country => country.cantons()));
+        // this.map.layer(layer => { layer
+        //     .evaluated(entity => entity.children)
+        //     .display(geo => geo.features);
+        // });
+        // this.map.on(canton);
 
         this.inspector = new Inspector();
         this.inspector.openOn(this.state.endpoint);
@@ -145,6 +201,7 @@ class App extends React.Component {
                 <main className="mdl-layout__content">
                     {/*{ this.map.render() }*/}
                     { this.inspector.render() }
+                    {/*{ this.text.render() }*/}
                 </main>
             </div>
         )

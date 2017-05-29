@@ -41,6 +41,11 @@ class MaterialTableComponent extends PresentationComponent {
 
     render() {
         var values = this.displayedValue();
+        console.log('entity', this.entity());
+        console.log('cache', this.state.cache);
+        console.log('displayed',this.displayedThenable());
+        console.log(this.presentation().getTitle(), values);
+
         var columns = this.presentation().columns();
 
         var rows = values.map(value =>

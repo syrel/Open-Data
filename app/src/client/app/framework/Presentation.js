@@ -50,17 +50,11 @@ class Presentation {
     }
 
     /**
+     * Returns a displayed value of the entity
      * @returns {Thenable}
      */
     displayedValue() {
-        var thenable = this.state.displayed(this.state.of(this.entity()));
-        if (_.isUndefined(thenable.then)) {
-            thenable = Thenable.resolve(thenable);
-        }
-        else {
-            thenable = new Thenable(thenable);
-        }
-        return thenable;
+        return Thenable.of(this.state.displayed(this.state.of(this.entity())));
     }
 
     title(block) {

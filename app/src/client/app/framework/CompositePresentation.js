@@ -11,6 +11,7 @@ import TextPresentation from './TextPresentation';
 import MapPresentation from './MapPresentation';
 import IFramePresentation from './IFramePresentation';
 
+// Forward declaration
 class CompositeComponent extends PresentationComponent {
     constructor(props) {
         super(props);
@@ -110,43 +111,31 @@ class CompositePresentation extends Presentation {
     }
 
     table(block) {
-        let table = new TablePresentation();
-        this.add(table);
-        if (!_.isUndefined(block))
-            block(table);
-        return table;
+        return this.compose(TablePresentation, block);
     }
 
     text(block) {
-        let text = new TextPresentation();
-        this.add(text);
-        if (!_.isUndefined(block))
-            block(text);
-        return text;
+        return this.compose(TextPresentation, block);
     }
 
     iframe(block) {
-        let iframe = new IFramePresentation();
-        this.add(iframe);
-        if (!_.isUndefined(block))
-            block(iframe);
-        return iframe;
+        return this.compose(IFramePresentation, block);
     }
 
     map(block) {
-        let map = new MapPresentation();
-        this.add(map);
-        if (!_.isUndefined(block))
-            block(map);
-        return map;
+        return this.compose(MapPresentation, block);
     }
 
     with(block) {
-        let composite = new CompositePresentation();
-        this.add(composite);
+        return this.compose(CompositePresentation, block);
+    }
+
+    compose(presentationClass, block) {
+        var presentation = new presentationClass();
+        this.add(presentation);
         if (!_.isUndefined(block))
-            block(composite);
-        return composite;
+            block(presentation);
+        return presentation;
     }
 
     browser() {

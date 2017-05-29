@@ -22,15 +22,15 @@ class MaterialTabulatorComponent extends CompositePresentation.CompositeComponen
 
     render() {
         return (
-            <div>
-                <MaterialTabs activeTab={this.state.activeTab} onChange={ tabId => this.handleSelect(tabId)} ripple>
+            <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column'}}>
+                <MaterialTabs style={{display: 'table-row'}} activeTab={this.state.activeTab} onChange={ tabId => this.handleSelect(tabId)} ripple>
                     {
                         this.presentations().map((presentation, index) => (
                             <MaterialTab key={index}>{ presentation.getTitle() }</MaterialTab>
                         ))
                     }
                 </MaterialTabs>
-                <section>
+                <section style={{overflowY: 'auto'}}>
                     <div key={this.state.activeTab} className="content"> { this.renderTab(this.state.activeTab) }</div>
                 </section>
             </div>

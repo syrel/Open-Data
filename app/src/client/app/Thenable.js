@@ -3,25 +3,30 @@
  */
 
 class Thenable {
-    constructor(thenable) {
+    /**
+     * Default value is optional value that is returned by get() until thenable is not resolved
+     * @param thenable
+     * @param defaultBlock
+     */
+    constructor(thenable, defaultBlock) {
         this.state = {
             onCompleted: [],
-            then: []
+            then: [],
+            default: defaultBlock
         };
 
-        if (this.isUndefined(thenable)) {
+        if (Thenable.isUndefined(thenable)) {
             return;
         }
 
-        thenable.then(result => {
-            this.resolved = { result: result };
+        var resolved = (result) => {
             this.state.then.forEach(then => {
-                if (this.isUndefined(then.resolved)) {
+                if (Thenable.isUndefined(then.resolved)) {
                     throw Error('then.resolved must not be undefined');
                 }
 
-                if (!this.isUndefined(result)) {
-                    if (!this.isUndefined(result.then)) {
+                if (!Thenable.isUndefined(result)) {
+                    if (!Thenable.isUndefined(result.then)) {
                         // here result is Thenable or polymorphic
                         // we should unpack result recursively
                         result.then((innerResult) => {
@@ -41,25 +46,50 @@ class Thenable {
             this.state.onCompleted.forEach(onCompleted => onCompleted());
             this.state.onCompleted = [];
             this.state.then = [];
-        }, error => {
+        };
+
+        var rejected = (error) => {
             console.error(error);
             this.rejected = { error: error };
-            this.state.then.forEach(then => { if (typeof then.rejected !== 'undefined') then.rejected(error) });
+            this.state.then.forEach(then => { if (!Thenable.isUndefined(then.rejected)) then.rejected(error) });
             this.state.onCompleted.forEach(onCompleted => onCompleted());
             this.state.onCompleted = [];
             this.state.then = [];
-        },
+        };
+
+
+        thenable.then(result => {
+            if (!Thenable.isUndefined(result)) {
+                if (!Thenable.isUndefined(result.then)) {
+                    // here result is Thenable or polymorphic
+                    // we should unpack result recursively
+                    result.then((innerResult) => {
+                        this.resolved = { result: innerResult };
+                        resolved(innerResult);
+                    }, rejected);
+                }
+                else {
+                    this.resolved = { result: result };
+                    resolved(result);
+                }
+            }
+            else {
+                // result is undefined
+                this.resolved = { result: result };
+                resolved(result);
+            }
+        }, rejected,
         false)
     }
 
     then(resolved, rejected, chain) {
-        if (this.isUndefined(chain)) {
+        if (Thenable.isUndefined(chain)) {
             chain = true;
         }
 
         if (!this.isPending()) {
             if (this.isResolved()) {
-                if (!this.isFunction(resolved)) {
+                if (!Thenable.isFunction(resolved)) {
                     return Thenable.resolve(this.resolved.result);
                 }
                 // now we can guarantee that resolved is function
@@ -68,8 +98,8 @@ class Thenable {
                 var result = resolved(this.resolved.result);
 
                 if (chain) {
-                    if (!this.isUndefined(result)) {
-                        if (!this.isUndefined(result.then)) {
+                    if (!Thenable.isUndefined(result)) {
+                        if (!Thenable.isUndefined(result.then)) {
                             return new Thenable(result);
                         }
                         return Thenable.resolve(result);
@@ -78,21 +108,37 @@ class Thenable {
                 }
             }
             if (this.isRejected()) {
-                if (!this.isFunction(resolved)) {
-                    return Thenable.resolve(this.rejected.error);
+                if (!Thenable.isFunction(rejected)) {
+                    return Thenable.reject(this.rejected.error);
                 }
-                // now we can guarantee that resolved is function
+                // now we can guarantee that rejected is function
 
-                var error = rejected(this.rejected.error);
+                if (!Thenable.isUndefined(rejected)) {
+                    var error = rejected(this.rejected.error);
+                    if (chain) {
+                        return Thenable.reject(error);
+                    }
+                }
                 if (chain) {
-                    return Thenable.reject(error);
+                    return Thenable.reject(this.rejected.error);
                 }
             }
         }
         else {
-            if (!this.isFunction(resolved)) {
+            if (!Thenable.isFunction(resolved)) {
                 return Thenable.of((resolved, rejected) => {
                     this.then((result) => resolved(result),rejected, false)
+                }, () => {
+                    if (!Thenable.isUndefined(this.state.default)) {
+                        var resolvedDefault = resolved(this.getDefault());
+                        if (!Thenable.isUndefined(resolvedDefault)) {
+                            if (!Thenable.isUndefined(resolvedDefault.then)) {
+                                return resolvedDefault.get();
+                            }
+                            return resolvedDefault;
+                        }
+                    }
+                    return this.state.default;
                 })
             }
             // now we can guarantee that resolved is function
@@ -107,16 +153,27 @@ class Thenable {
                 return Thenable.of((resolve, reject) => {
                     // then.result will be already computed resolved result
                     this.then(() => { resolve(then.result) }, reject, false)
+                }, () => {
+                    if (!Thenable.isUndefined(this.state.default)) {
+                        var resolvedDefault = resolved(this.getDefault());
+                        if (!Thenable.isUndefined(resolvedDefault)) {
+                            if (!Thenable.isUndefined(resolvedDefault.then)) {
+                                return resolvedDefault.get();
+                            }
+                            return resolvedDefault;
+                        }
+                    }
+                    return this.state.default;
                 });
             }
         }
     }
 
-    isFunction(obj) {
+    static isFunction(obj) {
         return !!(obj && obj.constructor && obj.call && obj.apply);
     }
 
-    isUndefined(obj) {
+    static isUndefined(obj) {
         return typeof obj === 'undefined';
     }
 
@@ -139,6 +196,33 @@ class Thenable {
         return !(typeof this.rejected == 'undefined');
     }
 
+    get() {
+        if (this.isPending() || this.isRejected()) {
+            var defaultValue = this.getDefault();
+            if (!Thenable.isUndefined(defaultValue)) {
+                if (!Thenable.isUndefined(defaultValue.then)) {
+                    return defaultValue.get();
+                }
+            }
+            return defaultValue;
+        }
+
+        var resolvedResult = this.resolved.result;
+        if (!Thenable.isUndefined(resolvedResult)) {
+            if (!Thenable.isUndefined(resolvedResult.then)) {
+                return resolvedResult.get();
+            }
+        }
+        return resolvedResult;
+    }
+
+    getDefault() {
+        if (Thenable.isFunction(this.state.default)) {
+            return this.state.default();
+        }
+        return this.state.default;
+    }
+
     static resolve(value) {
         let thenable = new Thenable();
         thenable.resolved = { result: value };
@@ -151,15 +235,34 @@ class Thenable {
         return thenable;
     }
 
-    static of(aFunction) {
-        return new Thenable({ then: aFunction });
+    static of(anObject, defaultBlock) {
+        if (Thenable.isFunction(anObject)) {
+            return new Thenable({ then: anObject }, defaultBlock);
+        }
+
+        if (anObject instanceof Thenable) {
+            if (Thenable.isUndefined(defaultBlock)) {
+                return anObject;
+            }
+        }
+
+        if (!Thenable.isUndefined(anObject.then)) {
+            return new Thenable(anObject, defaultBlock);
+        }
+        return Thenable.resolve(anObject);
     }
 
-    static delay(milliseconds) {
+    static delay(milliseconds, defaultBlock) {
+        var now = Math.floor(Date.now());
+
+        if (Thenable.isUndefined(defaultBlock)) {
+            defaultBlock = () => Math.floor(Date.now()) - now;
+        }
+
         return Thenable.of((resolve) => {
             var start = Math.floor(Date.now());
             setTimeout(() => resolve(Math.floor(Date.now()) - start), milliseconds);
-        });
+        }, defaultBlock);
     }
 }
 

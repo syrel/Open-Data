@@ -16,8 +16,26 @@ body {
     cursor: pointer
 }
 
+.table>tbody>tr>td {
+    word-wrap: break-word;
+}
+
+.mdl-layout__header-row {
+    height: 48px !important;
+}
+
 .mdl-data-table>tbody>tr {
     cursor: pointer
+}
+
+.mdl-data-table>tbody>tr>td {
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.mdl-data-table {
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 .mdl-data-table--no-header>thead {
@@ -25,7 +43,7 @@ body {
 }
 
 .boundary {
-    fill: #dddddd;
+    fill: #ffffff;
     stroke: #aaaaaa;
     stroke-width: 1px;
     stroke-linejoin: round;

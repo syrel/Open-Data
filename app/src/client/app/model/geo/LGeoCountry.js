@@ -14,6 +14,10 @@ class LGeoCountry extends LObject {
                 order: 10
             },
             {
+                method: this.gtInspectorVersionsIn.bind(this),
+                order: 15
+            },
+            {
                 method: this.gtInspectorMapIn.bind(this),
                 order: 20
             },

@@ -8,6 +8,7 @@ import LEndpoint from './LEndpoint'
 import LBinding from './LBinding'
 import LValue from './LValue'
 import Thenable from './../Thenable'
+import CardPresentation from './../framework/CardPresentation';
 import { parse as wkt } from 'wellknown'
 import _ from 'underscore'
 
@@ -53,6 +54,10 @@ class LObject {
         this.cache = {};
 
         this.extensions = [
+            {
+                method: this.gtInspectorVersionsIn.bind(this),
+                order: 15
+            },
             {
                 method: this.gtInspectorCantonsIn.bind(this),
                 order: 30
@@ -146,12 +151,35 @@ class LObject {
     }
 
     /**
+     * Returns a collection of property bindings with the given name
+     * @returns {Thenable}
+     */
+    propertiesAt(aName) {
+        return Thenable.of((resolve, reject) => {
+            this.properties().then(properties => {
+                    let found = properties.filter(property => LObject.extractName(property.getProperty().content) == aName);
+                    resolve(found);
+                },
+                error => { reject(error) })
+        });
+    }
+
+    /**
      * Return value(content) of a property with a given name
      * @param aName
      * @returns {Thenable}
      */
     propertyValueAt(aName) {
         return this.propertyAt(aName).then(property => property.getContent());
+    }
+
+    /**
+     * Return values(content) of the properties with a given name
+     * @param aName
+     * @returns {Thenable}
+     */
+    propertyValuesAt(aName) {
+        return this.propertiesAt(aName).then(properties => properties.map(property => property.getContent()));
     }
 
     /**
@@ -323,6 +351,15 @@ class LObject {
         return this.cache.municipalities;
     }
 
+    versions() {
+        if (_.isUndefined(this.cache.versions)) {
+            this.cache.versions = this
+                .propertyValuesAt('hasVersion')
+                .then(versions => versions.map(version => new LObject(this.endpoint, version)))
+        }
+        return this.cache.versions;
+    }
+
     municipalityBy(bfsNumber) {
         var id = 'municipality'+bfsNumber;
         if (_.isUndefined(this.cache[id])) {
@@ -393,14 +430,26 @@ class LObject {
                         .propertyAt('name')
                         .then(property => property.getContent()));
                 });
-                composite.map(map => {
-                    map.when(entity => entity.hasProperty('geosparql#hasGeometry'));
-                    map.display(entity => entity
-                        .propertyAt('geosparql#hasGeometry')
-                        .then(property => property.propertyAt('geosparql#asWKT'))
-                        .then(property => wkt(property.getContent())));
-                    map.layer(layer => {
-                        layer.evaluated(entity => entity);
+                // composite.map(map => {
+                //     map.when(entity => entity.hasProperty('geosparql#hasGeometry'));
+                //     map.display(entity => entity
+                //         .propertyAt('geosparql#hasGeometry')
+                //         .then(property => property.propertyAt('geosparql#asWKT'))
+                //         .then(property => wkt(property.getContent())));
+                //     map.layer(layer => {
+                //         layer.evaluated(entity => entity);
+                //     });
+                // });
+                composite.compose(CardPresentation, card => {
+                    card.map(map => {
+                        map.when(entity => entity.hasProperty('geosparql#hasGeometry'));
+                        map.display(entity => entity
+                            .propertyAt('geosparql#hasGeometry')
+                            .then(property => property.propertyAt('geosparql#asWKT'))
+                            .then(property => wkt(property.getContent())));
+                        map.layer(layer => {
+                            layer.evaluated(entity => entity);
+                        });
                     });
                 });
                 composite.text(text => {
@@ -428,6 +477,19 @@ class LObject {
                     text.format(string => 'Lake area: ' + (parseInt(string) / 100.0) + ' km²');
                 });
             });
+    }
+
+    gtInspectorVersionsIn(composite) {
+        composite.table(table => {
+            table.title(() => "Versions");
+            table.when(entity => entity.hasProperty('hasVersion'));
+            table.display(entity => entity.versions());
+            table.strongTransmit(version => version);
+            table.column(column => {column
+                .evaluated(each => each.toString())
+                .display(uri => uri.substr(uri.lastIndexOf(':') + 1))
+            });
+        });
     }
 
     gtInspectorCantonsIn(composite) {
