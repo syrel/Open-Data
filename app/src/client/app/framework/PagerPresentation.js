@@ -84,7 +84,7 @@ class PagerPresentation extends CompositePresentation {
     render() {
         var scroll = this.state.scrollToLast;
         this.state.scrollToLast = false;
-        return (<PagerComponent bind={ this.bindings() } scrollToLast={ scroll } />);
+        return (<PagerComponent key={ this.uuid() } bind={ this.bindings() } scrollToLast={ scroll } />);
     }
 }
 

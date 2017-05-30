@@ -4,6 +4,7 @@
 
 import React from 'react';
 import _ from 'underscore';
+import Thenable from '../Thenable';
 import Presentation from './Presentation';
 import PresentationComponent from './PresentationComponent';
 import TablePresentation from './TablePresentation';
@@ -72,7 +73,7 @@ class CompositeComponent extends PresentationComponent {
     render() {
         return (
            <div>{this.presentations().map((presentation, index) => {
-               return <div key={ index }> { presentation.render() }</div>
+               return <div key={ index }> { presentation.render(index) }</div>
            })}</div>
         );
     }
@@ -130,6 +131,33 @@ class CompositePresentation extends Presentation {
         return this.compose(CompositePresentation, block);
     }
 
+    dynamic(block, forceDynamic) {
+        if (_.isUndefined(forceDynamic)){
+            forceDynamic = false;
+        }
+
+        const entityThenable = Thenable.of(block());
+        entityThenable.then(entity => {
+            const presentationsCount = this.presentations.length;
+
+            if (!_.isUndefined(entity.extensions)) {
+                var dynamicPresentations = entity.extensions.filter(extension => forceDynamic || _.isUndefined(extension.dynamic) || extension.dynamic);
+                _.each(_.sortBy(dynamicPresentations, extension => extension.order), extension => extension.method(this));
+            }
+
+            for (var index = presentationsCount; index < this.presentations.length; index++) {
+                var presentation = this.presentations[index];
+                // breaks recursion
+                if (presentation.state.__dynamic__ !== true) {
+                    presentation.of(() => entity);
+                    presentation.on(entity);
+                    presentation.state.__dynamic__ = true;
+                }
+            }
+        });
+        entityThenable.onCompleted(() => this.updateComponent());
+    }
+
     compose(presentationClass, block) {
         return this.composeNew(new presentationClass(), block);
     }
@@ -165,7 +193,7 @@ class CompositePresentation extends Presentation {
 
     on(entity) {
         super.on(entity);
-        this.presentations.forEach(presentation => presentation.on(this.state.of(entity)));
+        this.presentations.forEach(presentation => presentation.on((entity)));
     }
 
     last() {
@@ -183,8 +211,8 @@ class CompositePresentation extends Presentation {
         this.on(entity);
     }
 
-    render() {
-        return (<CompositeComponent bind={ this.bindings() }>{this.presentations.map((presentation, index) => presentation.render(index))}</CompositeComponent>);
+    render(index) {
+        return (<CompositeComponent key={ this.uuid() } bind={ this.bindings() }/>);
     }
 }
 

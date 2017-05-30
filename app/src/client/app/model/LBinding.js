@@ -23,6 +23,10 @@ class LBinding {
         return LBinding.extractName(this.getProperty().content);
     }
 
+    getFullname() {
+        return this.getProperty().content;
+    }
+
     getContent() {
         return this.getValue().content;
     }

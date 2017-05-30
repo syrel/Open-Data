@@ -239,6 +239,10 @@ class Thenable {
     }
 
     static of(anObject, defaultBlock) {
+        if (_.isUndefined(anObject)) {
+            return defaultBlock;
+        }
+
         if (Thenable.isFunction(anObject)) {
             return new Thenable({ then: anObject }, defaultBlock);
         }

@@ -144,7 +144,7 @@ class TextPresentation extends Presentation {
     }
 
     render(index) {
-        return (<TextComponent key={index} bind={ this.bindings() }/>)
+        return (<TextComponent key={ this.uuid() } bind={ this.bindings() }/>)
     }
 }
 

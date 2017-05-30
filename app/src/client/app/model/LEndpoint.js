@@ -15,6 +15,14 @@ WHERE {
 }`;
 
 class LEndpoint {
+    static setServiceProvider(serviceProvider) {
+        LEndpoint.serviceProvider = serviceProvider;
+    }
+
+    serviceProvider() {
+        return LEndpoint.serviceProvider;
+    }
+
     constructor(uri) {
         this.uri = uri;
         this.cache = {};
@@ -33,6 +41,16 @@ class LEndpoint {
 
     static dbpedia() {
         return new LEndpoint('http://dbpedia.org/sparql');
+    }
+
+    object(props) {
+        return this.serviceProvider().defaultObject(Object.assign(props, {
+            endpoint: this
+        }));
+    }
+
+    query(query) {
+        return Sparql.query(this.getUri(), query);
     }
 
     getUri() {

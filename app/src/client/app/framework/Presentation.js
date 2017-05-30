@@ -5,6 +5,7 @@
 import React from 'react';
 import _ from 'underscore'
 import Thenable from './../Thenable'
+import uuid from './../uuid'
 
 
 class Presentation {
@@ -25,7 +26,8 @@ class Presentation {
             observers: {
                 strongSelection: entity => entity
             },
-            owner: null // owner presentation
+            owner: null, // owner presentation,
+            uuid: uuid()
         };
     }
 
@@ -53,7 +55,7 @@ class Presentation {
     }
 
     entity() {
-        return this.state.bindings.entity;
+        return this.state.of(this.state.bindings.entity);
     }
 
     /**
@@ -61,11 +63,11 @@ class Presentation {
      * @returns {Thenable}
      */
     displayedValue() {
-        return Thenable.of(this.state.displayed(this.state.of(this.entity())));
+        return Thenable.of(this.state.displayed(this.entity()));
     }
 
     defaultDisplayedValue() {
-        return this.state.defaultDisplayed(this.state.of(this.entity()));
+        return this.state.defaultDisplayed(this.entity());
     }
 
     title(block) {
@@ -103,7 +105,11 @@ class Presentation {
      * @returns {Thenable}
      */
     shouldShow() {
-        var thenable = this.state.when(this.state.of(this.entity()));
+        if (!this.hasEntity()) {
+            return Thenable.resolve(false);
+        }
+
+        var thenable = this.state.when(this.entity());
         if (_.isUndefined(thenable.then)) {
             thenable = Thenable.resolve(thenable);
         }
@@ -188,8 +194,12 @@ class Presentation {
 
     updateComponent() {
         if (this.hasComponent()) {
-            this.component().setState(this.component().state);
+            this.component().forceUpdate();
         }
+    }
+
+    uuid() {
+        return this.state.uuid;
     }
 
     render() {

@@ -5,20 +5,20 @@
 import $ from 'jquery';
 import 'jquery-xml2json'
 import _ from 'underscore'
+import Thenable from './Thenable'
 
 class Sparql {
-    static query (endpoint, query) {
-        //console.log(endpoint,query);
-        return new Promise((resolve, reject) => {
+    static query(endpoint, query) {
+        return Thenable.of((resolve, reject) => {
             $.post(endpoint, { query: query }).done(function(data) {
                 try {
                     // extract headers out of xml
                     var json = $.xml2json(data);
                     var result = json['#document'].sparql.results.result;
-                    if (_.isUndefined(result)) {
-                        result = [];
+                    //console.log(query, result);
+                    if (!_.isUndefined(result)) {
+                        resolve(result);
                     }
-                    resolve(result);
                 } catch (e) {
                     console.error(e);
                     //reject(Error("Failed to parse response"));

@@ -70,8 +70,6 @@ class MaterialTabulatorComponent extends CompositePresentation.CompositeComponen
 
     render() {
         var attributes = this.generateAttributes();
-
-
         return (
             <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column'}}>
                 <MaterialTabs { ... attributes } ripple>
@@ -142,10 +140,6 @@ class TabulatorPresentation extends CompositePresentation {
         }
     }
 
-    render(index) {
-        return (<MaterialTabulatorComponent key={index} bind={ this.bindings() } defaultTab={ this.state.defaultTab }/>);
-    }
-
     selectTab(tab) {
         Object.assign(this.state, {
             selectedTab: tab
@@ -154,6 +148,10 @@ class TabulatorPresentation extends CompositePresentation {
 
     selectedTab() {
         return this.state.selectedTab;
+    }
+
+    render(index) {
+        return (<MaterialTabulatorComponent key={ this.uuid() }  bind={ this.bindings() } defaultTab={ this.state.defaultTab }/>);
     }
 }
 

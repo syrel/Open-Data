@@ -78,7 +78,7 @@ class CardPresentation extends CompositePresentation {
     }
 
     render(index) {
-        return (<MaterialCardComponent key={index} bind={ this.bindings() }/>);
+        return (<MaterialCardComponent key={ this.uuid() } bind={ this.bindings() }/>);
     }
 }
 

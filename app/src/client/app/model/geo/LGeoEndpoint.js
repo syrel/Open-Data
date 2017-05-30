@@ -16,6 +16,8 @@ WHERE {
 }
 ORDER BY ASC(?Name)`;
 
+var uniqueInstance;
+
 class LGeoEndpoint extends LEndpoint {
     constructor() {
         super('https://ld.geo.admin.ch/query');
@@ -28,6 +30,13 @@ class LGeoEndpoint extends LEndpoint {
         );
     }
 
+    static uniqueInstance() {
+        if (_.isUndefined(uniqueInstance)) {
+            uniqueInstance = new LGeoEndpoint();
+        }
+        return uniqueInstance;
+    }
+
     countries() {
         if (_.isUndefined(this.cache.countries)) {
             this.cache.countries = Thenable.of((resolve, reject) => {
@@ -36,7 +45,10 @@ class LGeoEndpoint extends LEndpoint {
                         var countries = result.map(each => {
                             var country = each.binding[0];
                             var name = each.binding[1];
-                            return new LGeoCountry(this, country.uri, name.literal);
+                            return this.serviceProvider().geoCountry({
+                                uri: country.uri,
+                                name: name.literal
+                            });
                         });
                         resolve(countries);
                     }, error => reject(error));
@@ -53,6 +65,10 @@ class LGeoEndpoint extends LEndpoint {
                 column.display(each => each.toString())
             })
         });
+    }
+
+    object(props) {
+        return this.serviceProvider().geoObject(props);
     }
 }
 

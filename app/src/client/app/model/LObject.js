@@ -48,10 +48,27 @@ SELECT DISTINCT ?Municipality WHERE {
 } LIMIT 1`;
 
 class LObject {
-    constructor(endpoint, uri, name) {
-        this.endpoint = endpoint;
-        this.uri = uri;
-        this.name = name; // optional
+    static setServiceProvider(serviceProvider) {
+        LObject.serviceProvider = serviceProvider;
+    }
+
+    serviceProvider() {
+        return LObject.serviceProvider;
+    }
+
+    constructor(props) {
+        this.endpoint = props.endpoint;
+        this.uri = props.uri;
+        this.name = props.name; // optional
+
+        if (_.isUndefined(this.endpoint)) {
+            throw Error('Endpoint must not be nil!');
+        }
+
+        if (_.isUndefined(this.uri)) {
+            throw Error('Uri must not be nil!');
+        }
+
 
         this.cache = {};
 
@@ -75,6 +92,10 @@ class LObject {
             {
                 method: this.gtInspectorMapIn.bind(this),
                 order: 20
+            },
+            {
+                method: this.gtInspectorNeighboringMunicipalitiesIn.bind(this),
+                order: 25
             },
             {
                 method: this.gtInspectorPropertiesIn.bind(this),
@@ -121,11 +142,16 @@ class LObject {
                                 valueContent = valueContent._;
                             }
                             var valueName = _.keys(value)[0];
+                            try {
+                                valueContent = decodeURIComponent(valueContent)
+                            }
+                            catch (e) {/* is not URI, simply ignore */}
+
 
                             return new LBinding({
                                 endpoint: this.endpoint,
                                 property: { content: property[_.keys(property)[0]], name: _.keys(property)[0] },
-                                value: LValue.from(this.endpoint, decodeURIComponent(valueContent), valueName)
+                                value: LValue.from(this.endpoint, valueContent, valueName)
                             });
                         });
                         resolve(properties);
@@ -298,7 +324,11 @@ class LObject {
                         var cantons = result.map(each => {
                             var canton = each.binding[0];
                             var name = each.binding[1];
-                            return new LObject(this.endpoint, canton.uri, name.literal);
+                            return new LObject({
+                                endpoint: this.endpoint,
+                                uri: canton.uri,
+                                name: name.literal
+                            });
                         });
                         resolve(cantons);
                     }, error => reject(error));
@@ -321,7 +351,11 @@ class LObject {
                         var districts = result.map(each => {
                             var district = each.binding[0];
                             var name  = each.binding[1];
-                            return new LObject(this.endpoint, district.uri, name.literal);
+                            return new LObject({
+                                endpoint: this.endpoint,
+                                uri: district.uri,
+                                name: name.literal
+                            });
                         });
                         resolve(districts);
                     }, error => reject(error));
@@ -344,7 +378,11 @@ class LObject {
                         var municipalities = result.map(each => {
                             var municipality = each.binding[0];
                             var name  = each.binding[1];
-                            return new LObject(this.endpoint, municipality.uri, name.literal);
+                            return new LObject({
+                                endpoint: this.endpoint,
+                                uri: municipality.uri,
+                                name: name.literal
+                            });
                         });
                         resolve(municipalities);
                     }, error => reject(error));
@@ -357,7 +395,9 @@ class LObject {
         if (_.isUndefined(this.cache.versions)) {
             this.cache.versions = this
                 .propertyValuesAt('hasVersion')
-                .then(versions => versions.map(version => new LObject(this.endpoint, version)))
+                .then(versions => versions.map(version => new LObject({
+                    endpoint: this.endpoint,
+                    uri: version})))
         }
         return this.cache.versions;
     }
@@ -368,7 +408,9 @@ class LObject {
             this.cache[id] = Thenable.of((resolve, reject) => {
                 Sparql.query(LEndpoint.lindas().getUri(), LINDAS_MUNICIPALITY_QUERY(bfsNumber))
                     .then(result => {
-                        var municipality = new LObject(LEndpoint.lindas(), result.binding.uri);
+                        var municipality = new LObject({
+                            endpoint: LEndpoint.lindas(),
+                            uri: result.binding.uri});
                         resolve(municipality);
                     }, error => reject(error));
             });
@@ -401,27 +443,38 @@ class LObject {
         return this.hasPropertyContaining('owl#sameAs', 'dbpedia.org');
     }
 
+    lindas() {
+        if (_.isUndefined(this.cache.lindas)) {
+            this.cache.lindas = this.propertyValueAt('bfsNumber').then(bfsNumber => Sparql
+                .query(this.serviceProvider().lindasEndpoint().getUri(), LINDAS_MUNICIPALITY_QUERY(bfsNumber))
+                .then(result => this.serviceProvider().lindasObject({
+                    uri: result.binding.uri
+                })));
+        }
+        return this.cache.lindas;
+    }
+
     dbpedia() {
-        return this
-            .propertyContaining('owl#sameAs', 'dbpedia.org')
-            .then(property => new LObject(LEndpoint.dbpedia(), property.getContent()));
+        return this.lindas().then(lindas => lindas.dbpedia());
     }
 
     static extractName(content) {
         return content.substr(content.lastIndexOf('/') + 1)
     }
 
+
+    propertiesTitle() {
+        return 'Properties';
+    }
     gtInspectorPropertiesIn(composite) {
         composite.table(table => {
-            table.title(() => 'Geo Properties');
+            table.title(entity => entity.propertiesTitle());
             table.withHeader();
-            table.display(entity => {
-                return entity.properties()});
-
+            table.display(entity => entity.properties());
             table.strongTransmit(binding => binding.getValue());
             table.column(column => {column
                     .named(() => 'Property')
-                    .evaluated(each => each.getName())
+                    .evaluated(each => each.getFullname())
             });
             table.column(column => {column
                     .named(() => 'Value')
@@ -568,6 +621,27 @@ class LObject {
         });
     }
 
+    gtInspectorNeighboringMunicipalitiesIn(composite) {
+        composite.table(table => {
+            table.title(() => 'Neighbors');
+            table.when(entity => entity.isMunicipality());
+            table.display(entity => {
+                return entity.dbpedia()
+                    .then(dbpedia => dbpedia.neighbors())
+                    .then(neighbors => Thenable.multiple(neighbors.map(neighbour => {
+                        return Thenable.multiple({
+                            neighbour: neighbour,
+                            name: neighbour.propertyValueAt('name')
+                        })
+                    })))
+            });
+            table.strongTransmit(entity => entity.neighbour);
+            table.column(column => column
+                .evaluated(each => each.name)
+            );
+        });
+    }
+
     gtInspectorMunicipalityLindasIn(composite) {
         composite.table(table => {
             table.when(entity => entity.isMunicipality());
@@ -580,7 +654,7 @@ class LObject {
             table.strongTransmit(binding => binding.getValue());
             table.column(column => {column
                 .named(() => 'Property')
-                .evaluated(each => each.getName())
+                .evaluated(each => each.getFullname())
             });
             table.column(column => {column
                 .named(() => 'Value')
@@ -592,19 +666,9 @@ class LObject {
     gtInspectorMunicipalityDBpediaIn(composite) {
         composite.table(table => {
             table.title(() => "DBpedia Properties");
-            table.when(entity => entity
-                .isMunicipality()
-                .then(result => result
-                    ? entity
-                    .propertyAt('bfsNumber')
-                    .then(property => this.municipalityBy(property.getContent()))
-                    .then(municipality => municipality.hasDBpedia())
-                    : result));
+            table.when(entity => entity.isMunicipality());
             table.withHeader();
-            table.display(entity => entity
-                .propertyAt('bfsNumber')
-                .then(property => this.municipalityBy(property.getContent()))
-                .then(municipality => municipality.dbpedia())
+            table.display(entity => entity.dbpedia()
                 .then(dbpedia => dbpedia.properties()));
             table.strongTransmit(binding => binding.getValue());
             table.column(column => {column

@@ -27,6 +27,8 @@ import { FormControl } from 'react-bootstrap';
 import Inspector from './framework/Inspector';
 import LEndpoint from './model/LEndpoint';
 import LGeoEndpoint from './model/geo/LGeoEndpoint';
+import LDBpediaObject from './model/dbpedia/LDBpediaObject';
+import LLindasObject from './model/lindas/LLindasObject';
 import LObject from './model/LObject';
 import MapPresentation from './framework/MapPresentation'
 import TextPresentation from './framework/TextPresentation'
@@ -38,13 +40,18 @@ import './extensions';
 import template from './template';
 import geometry from './geometry';
 
+import LServiceProvider from './model/LServiceProvider';
+
 class App extends React.Component {
     constructor(props) {
         super(props);
 
+        LObject.setServiceProvider(LServiceProvider);
+        LEndpoint.setServiceProvider(LServiceProvider);
+
         this.state = {
-            endpoint: new LGeoEndpoint()
-            //endpoint: new LEndpoint('http://lindas-data.ch/sparql')
+            //endpoint: new LGeoEndpoint()
+            endpoint: new LEndpoint('http://lindas-data.ch/sparql')
             //endpoint: new LEndpoint('http://dbpedia.org/sparql')
 
             //endpoint: new LEndpoint('https://query.wikidata.org/bigdata/namespace/wdq/sparql')
@@ -52,9 +59,35 @@ class App extends React.Component {
         };
 
         var endpoint = new LGeoEndpoint();
-        var country = new LObject(endpoint, 'https://ld.geo.admin.ch/boundaries/country/CH:2017');
-        var canton = new LObject(endpoint, 'https://ld.geo.admin.ch/boundaries/canton/2:2017', 'Bern');
+        var country = new LObject({
+            endpoint: endpoint,
+            uri: 'https://ld.geo.admin.ch/boundaries/country/CH:2017'
+        });
+        var canton = new LObject({
+            endpoint: endpoint,
+            uri: 'https://ld.geo.admin.ch/boundaries/canton/2:2017',
+            name: 'Bern'
+        });
+        var municipality = new LObject({
+            endpoint: endpoint,
+            uri: 'https://ld.geo.admin.ch/boundaries/municipality/861:2017'
+        });
 
+        var dbpedia = new LDBpediaObject({
+            uri: 'http://dbpedia.org/resource/Kaufdorf'
+        });
+
+        var lindasMunicipality = new LLindasObject({
+            uri: 'http://data.admin.ch/bfs/municipality/15029'
+        });
+
+        var lindasDistrict = new LLindasObject({
+            uri: 'http://data.admin.ch/bfs/district/10261'
+        });
+
+        var lindasCanton = new LLindasObject({
+            uri: 'http://data.admin.ch/bfs/canton/SO'
+        });
 
         // var num = 1000;
         //
@@ -127,7 +160,7 @@ class App extends React.Component {
         // this.map.on(canton);
 
         this.inspector = new Inspector();
-        this.inspector.openOn(this.state.endpoint);
+        this.inspector.openOn(lindasMunicipality);
     }
 
     handleChange() {

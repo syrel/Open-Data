@@ -28,7 +28,7 @@ class IFramePresentation extends Presentation {
     }
 
     render(index) {
-        return (<IFrameComponent key={index} bind={ this.bindings() }/>)
+        return (<IFrameComponent key={ this.uuid() } bind={ this.bindings() }/>)
     }
 }
 

@@ -2,7 +2,6 @@
  * Created by syrel on 21.05.17.
  */
 
-import LObject from './LObject'
 import _ from 'underscore';
 import Thenable from './../Thenable'
 
@@ -32,13 +31,16 @@ class LValue {
         return this.type.toLowerCase() == 'literal';
     }
 
-
     /**
      * Return {LObject}
      */
     getUriObject() {
         if (this.isUri()) {
-            this.uriObject = _.isUndefined(this.uriObject) ? new LObject(this.endpoint, this.content) : this.uriObject;
+            if (_.isUndefined(this.uriObject)) {
+                this.uriObject =  this.endpoint.object({
+                    uri: this.content
+                });
+            }
             return this.uriObject;
         }
     }
@@ -65,13 +67,8 @@ class LValue {
         if (!this.isUri()) {
             return;
         }
-
-        const presentationsCount = composite.presentations.length;
-        composite.openOn(this.getUriObject());
-
-        for (var index = presentationsCount; index < composite.presentations.length; index++) {
-            composite.presentations[index].of(entity => entity.getUriObject());
-        }
+        //console.log(this.getUriObject());
+        composite.dynamic(() => this.getUriObject(), true);
     }
 
     static from(endpoint, content, type) {

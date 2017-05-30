@@ -42,7 +42,9 @@ class LClass {
                 Sparql.query(this.endpoint.getUri(), ALL_OBJECTS_QUERY(this.clazz))
                     .then(result => {
                         var objects = result.map(each => {
-                            return new LObject(this.endpoint, each.binding.uri);
+                            return this.endpoint.object({
+                                uri: each.binding.uri
+                            })
                         });
                         resolve(objects);
                     }, error => reject(error))

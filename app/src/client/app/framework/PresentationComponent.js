@@ -21,7 +21,7 @@ class PresentationComponent extends React.Component {
 
         props.bind.component = this;
         this.state = {
-            entity: props.bind.entity,
+            entity: props.bind.presentation.entity(),
             cache: {}
         };
 
@@ -33,8 +33,10 @@ class PresentationComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (!_.isEqual(this.state.entity, nextProps.bind.entity)) {
-            this.state.entity = nextProps.bind.entity;
+        nextProps.bind.component = this;
+        var nextEntity = nextProps.bind.presentation.entity();
+        if (!_.isEqual(this.state.entity, nextEntity)) {
+            this.state.entity = nextEntity;
             this.resetState(nextProps);
         }
     }

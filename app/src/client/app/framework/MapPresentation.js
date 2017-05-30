@@ -221,7 +221,7 @@ class MapPresentation extends Presentation {
     }
 
     render(index) {
-        return (<MapComponent key={ index } bind={ this.bindings() } width={600} height={500}/>)
+        return (<MapComponent key={ this.uuid() } bind={ this.bindings() } width={600} height={500}/>)
     }
 }
 

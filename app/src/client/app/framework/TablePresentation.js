@@ -198,7 +198,7 @@ class TablePresentation extends Presentation {
     }
 
     render() {
-        return (<MaterialTableComponent bind={ this.bindings() }/>)
+        return (<MaterialTableComponent key={ this.uuid() } bind={ this.bindings() }/>)
     }
 }
 

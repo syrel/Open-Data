@@ -2,11 +2,11 @@
  * Created by syrel on 23.05.17.
  */
 
-import LObject from './../LObject'
+import LGeoObject from './LGeoObject'
 
-class LGeoCountry extends LObject {
-    constructor(endpoint, uri, name) {
-        super(endpoint, uri, name);
+class LGeoCountry extends LGeoObject {
+    constructor(props) {
+        super(props);
 
         this.extensions = [
             {
