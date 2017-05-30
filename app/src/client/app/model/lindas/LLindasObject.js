@@ -38,23 +38,17 @@ class LLindasObject extends LObject {
         this.cache.dbpedia = Thenable.of(props.dbpedia);
         this.cache.geo = Thenable.of(props.geo);
 
-        this.extensions = [
+        this.extensions.push(
             {
                 method: this.gtInspectorGeoIn.bind(this),
                 order: 31,
                 dynamic: false
             },
             {
-                method: this.gtInspectorPropertiesIn.bind(this),
-                order: 31,
-                dynamic: true
-            },
-            {
                 method: this.gtInspectorDBpediaIn.bind(this),
                 order: 31,
                 dynamic: false
-            },
-        ]
+            })
     }
 
     isDistrict() {
@@ -135,7 +129,7 @@ class LLindasObject extends LObject {
     }
 
     propertiesTitle() {
-        return 'Lindas Properties';
+        return 'Lindas';
     }
 
     gtInspectorGeoIn(composite) {

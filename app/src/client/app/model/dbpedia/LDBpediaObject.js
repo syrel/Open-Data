@@ -22,7 +22,12 @@ class LDBpediaObject extends LObject {
         this.cache.lindas = Thenable.of(props.lindas);
         this.cache.geo = Thenable.of(props.geo);
 
-        this.extensions = [
+        this.extensions.push(
+            {
+                method: this.gtInspectorNeighboringMunicipalitiesIn.bind(this),
+                order: 20,
+                dynamic: true
+            },
             {
                 method: this.gtInspectorGeoIn.bind(this),
                 order: 31,
@@ -32,13 +37,7 @@ class LDBpediaObject extends LObject {
                 method: this.gtInspectorLindasIn.bind(this),
                 order: 31,
                 dynamic: false
-            },
-            {
-                method: this.gtInspectorPropertiesIn.bind(this),
-                order: 32,
-                dynamic: true
-            }
-        ]
+            });
     }
 
     geo() {
@@ -70,17 +69,35 @@ class LDBpediaObject extends LObject {
     }
 
     propertiesTitle() {
-        return 'DBpedia Properties';
+        return 'DBpedia';
     }
 
     gtInspectorGeoIn(composite) {
-        console.log('gtInspectorGeoIn');
         composite.dynamic(() => this.geo());
     }
 
     gtInspectorLindasIn(composite) {
-        console.log('gtInspectorLindasIn');
         composite.dynamic(() => this.lindas());
+    }
+
+    gtInspectorNeighboringMunicipalitiesIn(composite) {
+        composite.table(table => {
+            table.title(() => 'Neighbors');
+            table.when(entity => entity.hasProperty('neighboringMunicipality'));
+            table.display(entity => {
+                return entity.neighbors()
+                    .then(neighbors => Thenable.multiple(neighbors.map(neighbour => {
+                        return Thenable.multiple({
+                            neighbour: neighbour,
+                            name: neighbour.propertyValueAt('name')
+                        })
+                    })))
+            });
+            table.strongTransmit(entity => entity.neighbour);
+            table.column(column => column
+                .evaluated(each => each.name)
+            );
+        });
     }
 
 

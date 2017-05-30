@@ -193,7 +193,7 @@ class CompositePresentation extends Presentation {
 
     on(entity) {
         super.on(entity);
-        this.presentations.forEach(presentation => presentation.on((entity)));
+        this.presentations.forEach(presentation => presentation.on(this.state.of(entity)));
     }
 
     last() {

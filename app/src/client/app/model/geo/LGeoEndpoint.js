@@ -16,6 +16,26 @@ WHERE {
 }
 ORDER BY ASC(?Name)`;
 
+
+// ${0} type of children
+// ${1} type of parent
+// ${2} parent object
+// Example:
+// SELECT ?AdminUnit
+//     WHERE {
+//     ?AdminUnit a <http://www.geonames.org/ontology#A.ADM1>.
+//     ?AdminUnit <http://www.geonames.org/ontology#parentCountry> ?InParent.
+//     FILTER (?InParent = <https://ld.geo.admin.ch/boundaries/country/CH:2017>)
+// }
+const CHILDREN_QUERY = template`SELECT ?AdminUnit ?Name
+WHERE {
+  ?AdminUnit a <${0}>.
+  ?AdminUnit <${1}> ?InParent.
+  ?AdminUnit <http://schema.org/name> ?Name.
+  FILTER (?InParent = <${2}>)
+}
+ORDER BY ASC(?Name)`;
+
 var uniqueInstance;
 
 class LGeoEndpoint extends LEndpoint {
@@ -55,6 +75,21 @@ class LGeoEndpoint extends LEndpoint {
             });
         }
         return this.cache.countries;
+    }
+
+    queryChildren(params) {
+        return Sparql.query(this.getUri(), CHILDREN_QUERY(
+                params.children,
+                params.parent,
+                params.object.uri))
+            .then(result => result.map(each => {
+                var child = each.binding[0];
+                var name = each.binding[1];
+                return this.object({
+                    uri: child.uri,
+                    name: name.literal
+                });
+            }));
     }
 
     gtInspectorCountriesIn(composite) {

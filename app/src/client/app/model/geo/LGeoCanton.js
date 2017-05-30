@@ -7,13 +7,6 @@ import LGeoObject from './LGeoObject'
 class LGeoCanton extends LGeoObject {
     constructor(props) {
         super(props);
-
-        this.extensions = [
-            {
-                method: this.gtInspectorPropertiesIn.bind(this),
-                order: 30
-            },
-        ]
     }
 }
 
