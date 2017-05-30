@@ -203,7 +203,6 @@ class MapPresentation extends Presentation {
         super(props);
 
         Object.assign(this.state, {
-            transformed: object => object,
             layers: []
         });
     }

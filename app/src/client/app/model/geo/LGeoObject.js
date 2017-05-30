@@ -75,6 +75,11 @@ class LGeoObject extends LObject {
                 dynamic: true
             },
             {
+                method: this.gtInspectorCountryStatisticsIn.bind(this),
+                order: 25,
+                dynamic: true
+            },
+            {
                 method: this.gtInspectorLindasIn.bind(this),
                 order: 31,
                 dynamic: false
@@ -135,7 +140,6 @@ class LGeoObject extends LObject {
                 query: this.lindasQuery()
             })
                 .then(request => {
-                    console.log(request);
                     return this.serviceProvider().lindasEndpoint().query(request.query(request.bfsNumber))
                         .then(result => this.serviceProvider().lindasObject({
                             uri: result.binding.uri,
@@ -148,7 +152,7 @@ class LGeoObject extends LObject {
     }
 
     dbpedia() {
-        return this.lindas().then(lindas => lindas.dbpedia());
+        return this.lindas().then(lindas => lindas.dbpedia()).then(dbpedia => dbpedia.neighbors());
     }
 
 
@@ -234,15 +238,15 @@ class LGeoObject extends LObject {
         return Thenable.of((resolve, reject) => {
             this.isCountry().then(isCountry => {
                 if (isCountry) {
-                    resolve(this.cantons());
+                    this.cantons().then(cantons => resolve(cantons))
                 }
                 else this.isCanton().then(isCanton => {
                     if (isCanton) {
-                        resolve(this.districts())
+                        this.districts().then(districts => resolve(districts))
                     }
                     else this.isDistrict().then(isDistrict => {
                         if (isDistrict) {
-                            resolve(this.municipalities())
+                            this.municipalities().then(municipalities => resolve(municipalities))
                         }
                         else resolve([])
                     }, reject)
@@ -332,9 +336,7 @@ class LGeoObject extends LObject {
         composite
             .with(composite => {
                 composite.title(entity => 'Map');
-                composite.when(entity => {
-                    return entity.hasProperty('geosparql#hasGeometry')
-                });
+                composite.when(entity => entity.hasProperty('geosparql#hasGeometry'));
                 composite.compose(CardPresentation, card => {
                     card.content(content => content.map(map => {
                         map.when(entity => entity.hasProperty('geosparql#hasGeometry'));
@@ -392,6 +394,91 @@ class LGeoObject extends LObject {
                     });
                 });
             });
+    }
+
+    gtInspectorCountryStatisticsIn(composite) {
+        composite.with(statistics => {
+            statistics.title(() => 'Statistics');
+            statistics.when(entity => entity.isCountry().then(isCountry => {
+                if (isCountry) {
+                    return entity.hasProperty('ontology#population');
+                }
+                else return false;
+            }));
+            statistics.compose(CardPresentation, population => {
+                population.when(entity => entity.isCountry());
+                population.named(entity => entity.propertyValueAt('name').then(name => 'Population ' + name));
+                population.background(() => '#00BFA5'/*'rgb(0,200,198)'*/);
+                population.content(content => {
+                    content.barChart(chart => {
+                        chart.defaultDisplay(() => []);
+                        chart.display(entity => this.children().then(cantons => Thenable.multiple(cantons.map(canton => {
+                                return Thenable.multiple({
+                                    canton: canton,
+                                    name: canton.propertyValueAt('name'),
+                                    abbreviation: canton.lindas().then(lindas => lindas.propertyValueAt('cantonAbbreviation')),
+                                    population: canton.propertyValueAt('ontology#population').then(population => parseInt(population))
+                                })
+                            })).then(cantons => _.sortBy(cantons, canton => canton.abbreviation))
+                        ));
+                        chart.x(entity => entity.abbreviation);
+                        chart.y(entity => entity.population);
+                        chart.labeled(entity => entity.abbreviation);
+                        chart.selected(entity => entity.canton)
+                    })
+                })
+            });
+
+            statistics.compose(CardPresentation, population => {
+                population.when(entity => entity.isCountry());
+                population.named(entity => entity.propertyValueAt('name').then(name => 'Area ' + name));
+                population.background(() => '#00B8D4');
+                population.content(content => {
+                    content.barChart(chart => {
+                        chart.defaultDisplay(() => []);
+                        chart.display(entity => this.children().then(cantons => Thenable.multiple(cantons.map(canton => {
+                                return Thenable.multiple({
+                                    canton: canton,
+                                    name: canton.propertyValueAt('name'),
+                                    abbreviation: canton.lindas().then(lindas => lindas.propertyValueAt('cantonAbbreviation')),
+                                    area: canton.propertyValueAt('area').then(area => parseInt(area) / 100.0)
+                                })
+                            })).then(cantons => _.sortBy(cantons, canton => canton.abbreviation))
+                        ));
+                        chart.x(entity => entity.abbreviation);
+                        chart.y(entity => entity.area);
+                        chart.labeled(entity => entity.abbreviation);
+                        chart.selected(entity => entity.canton)
+                    })
+                })
+            });
+            statistics.compose(CardPresentation, population => {
+                population.when(entity => entity.isCountry());
+                population.named(entity => entity.propertyValueAt('name').then(name => 'Population density ' + name));
+                population.background(() => '#F06292');
+                population.content(content => {
+                    content.barChart(chart => {
+                        chart.defaultDisplay(() => []);
+                        chart.display(entity => this.children().then(cantons => Thenable.multiple(cantons.map(canton => {
+                                return Thenable.multiple({
+                                    canton: canton,
+                                    name: canton.propertyValueAt('name'),
+                                    abbreviation: canton.lindas().then(lindas => lindas.propertyValueAt('cantonAbbreviation')),
+                                    density: Thenable.multiple({
+                                        area: canton.propertyValueAt('area').then(area => parseInt(area) / 100.0),
+                                        population: canton.propertyValueAt('ontology#population').then(population => parseInt(population))})
+                                            .then(data => data.population / data.area)
+                                })
+                            })).then(cantons => _.sortBy(cantons, canton => canton.abbreviation))
+                        ));
+                        chart.x(entity => entity.abbreviation);
+                        chart.y(entity => entity.density);
+                        chart.labeled(entity => entity.abbreviation);
+                        chart.selected(entity => entity.canton)
+                    })
+                })
+            })
+        })
     }
 
     gtInspectorPolygonIn(composite) {

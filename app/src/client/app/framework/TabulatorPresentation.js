@@ -72,7 +72,7 @@ class MaterialTabulatorComponent extends CompositePresentation.CompositeComponen
     render() {
         var attributes = this.generateAttributes();
         return (
-            <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column'}}>
+            <div style={{width: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column'}}>
                 <MaterialTabs { ... attributes } ripple>
                     {
                         this.presentations().map((presentation, index) => (

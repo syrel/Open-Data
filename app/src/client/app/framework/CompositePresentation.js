@@ -10,6 +10,7 @@ import PresentationComponent from './PresentationComponent';
 import TablePresentation from './TablePresentation';
 import TextPresentation from './TextPresentation';
 import MapPresentation from './MapPresentation';
+import BarChartPresentation from './BarChartPresentation';
 import IFramePresentation from './IFramePresentation';
 
 // Forward declaration
@@ -123,6 +124,10 @@ class CompositePresentation extends Presentation {
 
     map(block) {
         return this.compose(MapPresentation, block);
+    }
+
+    barChart(block) {
+        return this.compose(BarChartPresentation, block);
     }
 
     with(block) {

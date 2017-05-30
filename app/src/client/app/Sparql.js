@@ -8,23 +8,51 @@ import _ from 'underscore'
 import Thenable from './Thenable'
 
 class Sparql {
-    static query(endpoint, query) {
+    static query(endpoint, query, defaultResult) {
         return Thenable.of((resolve, reject) => {
             $.post(endpoint, { query: query, output: 'xml' }).done(function(data) {
+                var result;
                 try {
                     // extract headers out of xml
                     var json = $.xml2json(data);
-                    var result = json['#document'].sparql.results.result;
-                    //console.log(query, result);
-                    if (!_.isUndefined(result)) {
-                        resolve(result);
-                    }
+                    result = json['#document'].sparql.results.result;
                 } catch (e) {
                     console.error(e);
-                    //reject(Error("Failed to parse response"));
+                    return reject(Error('Failed to parse response!'));
+                }
+
+                if (!_.isUndefined(result)) {
+                    try {
+                        resolve(result);
+                    }
+                    catch(e) {
+                        console.error(e);
+                        return reject(Error('Failed to resolve response!'));
+                    }
+                }
+                else {
+                    if (_.isUndefined(defaultResult)) {
+                        try {
+                            resolve([]);
+                        }
+                        catch(e) {
+                            console.error(e);
+                            return reject(Error('Failed to resolve response with empty array [] as guessed result value!'));
+                        }
+                    }
+                    else {
+                        try {
+                            resolve(defaultResult);
+                        }
+                        catch(e) {
+                            console.error(e);
+                            return reject(Error('Failed to resolve response with default result value!', defaultResult));
+                        }
+                    }
                 }
             }).fail(function(error) {
-                //reject(error);
+                console.error(error);
+                reject(error);
             });
         });
     };

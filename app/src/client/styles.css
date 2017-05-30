@@ -64,6 +64,18 @@ body {
     fill: rgba(255, 0, 0, 0.31);
 }
 
+rect.background {
+    cursor: pointer
+}
+
+rect.background:hover {
+    fill: rgba(255, 255, 255, 0.5)
+}
+
+path.bar {
+    cursor: pointer
+}
+
 text.label {
     pointer-events: none;
     fill: #323232;

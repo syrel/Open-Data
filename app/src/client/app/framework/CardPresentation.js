@@ -27,9 +27,11 @@ class MaterialCardComponent extends CompositePresentation.CompositeComponent {
         return (
             <div style={{width: '100%', padding: '16pt'}}>
                 <Card shadow={0} style={{ width: '100%', margin: 'auto'}}>
-                    <div style={{color: '#fff', background: '#46B6AC'}}>
+                    <div style={{color: '#fff', background: this.presentation().state.background(this.entity())}}>
                         <div>{ this.presentation().state.contentPresentation.render(-1) }</div>
-                        <CardTitle expand style={{color: '#fff', background: '#46B6AC'}}>{ this.namedValue() }</CardTitle>
+                        <CardTitle expand style={{color: '#fff', background: this.presentation().state.background(this.entity())}}>
+                            { this.namedValue() }
+                        </CardTitle>
                     </div>
                     { this.renderPresentations() }
                 </Card>
@@ -59,7 +61,8 @@ class CardPresentation extends CompositePresentation {
 
         Object.assign(this.state, {
             contentPresentation: this.presentations[0],
-            named: entity => ''
+            named: entity => '',
+            background: entity => '#46B6AC'
         });
     }
 
@@ -70,6 +73,11 @@ class CardPresentation extends CompositePresentation {
 
     named(block) {
         this.state.named = block;
+        return this;
+    }
+
+    background(block) {
+        this.state.background = block;
         return this;
     }
 

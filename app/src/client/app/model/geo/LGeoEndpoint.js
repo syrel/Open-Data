@@ -5,7 +5,6 @@
 import Sparql from './../../Sparql'
 import template from './../../template'
 import LEndpoint from './../LEndpoint'
-import LGeoCountry from './LGeoCountry'
 import Thenable from './../../Thenable'
 import _ from 'underscore'
 
@@ -60,7 +59,7 @@ class LGeoEndpoint extends LEndpoint {
     countries() {
         if (_.isUndefined(this.cache.countries)) {
             this.cache.countries = Thenable.of((resolve, reject) => {
-                Sparql.query(this.getUri(), COUNTRIES_QUERY())
+                Sparql.query(this.getUri(), COUNTRIES_QUERY(), [])
                     .then(result => {
                         var countries = result.map(each => {
                             var country = each.binding[0];
@@ -81,7 +80,7 @@ class LGeoEndpoint extends LEndpoint {
         return Sparql.query(this.getUri(), CHILDREN_QUERY(
                 params.children,
                 params.parent,
-                params.object.uri))
+                params.object.uri), [])
             .then(result => result.map(each => {
                 var child = each.binding[0];
                 var name = each.binding[1];
