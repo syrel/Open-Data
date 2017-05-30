@@ -11,13 +11,26 @@ import CardPresentation from './../../framework/CardPresentation';
 import geometry from './../../geometry';
 import React from 'react';
 import { parse as wkt } from 'wellknown'
-import Sparql from '../../Sparql'
 
 // ${0} bfs number of municipality
 const LINDAS_MUNICIPALITY_QUERY = template`
-SELECT DISTINCT ?Municipality WHERE {
-   ?Municipality <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.admin.ch/vocab/Municipality>.
-   ?Municipality <http://data.admin.ch/vocab/municipalityId> ${0}
+SELECT DISTINCT ?Unit WHERE {
+   ?Unit <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.admin.ch/vocab/Municipality>.
+   ?Unit <http://data.admin.ch/vocab/municipalityId> ${0}
+} LIMIT 1`;
+
+// ${0} bfs number of district
+const LINDAS_DISTRICT_QUERY = template`
+SELECT DISTINCT ?Unit WHERE {
+   ?Unit <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.admin.ch/vocab/District>.
+   ?Unit <http://data.admin.ch/vocab/districtId> ${0}
+} LIMIT 1`;
+
+// ${0} bfs number of canton
+const LINDAS_CANTON_QUERY = template`
+SELECT DISTINCT ?Unit WHERE {
+   ?Unit <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://data.admin.ch/vocab/Canton>.
+   ?Unit <http://data.admin.ch/vocab/cantonId> ${0}
 } LIMIT 1`;
 
 
@@ -62,6 +75,16 @@ class LGeoObject extends LObject {
                 dynamic: true
             },
             {
+                method: this.gtInspectorLindasIn.bind(this),
+                order: 31,
+                dynamic: false
+            },
+            {
+                method: this.gtInspectorDBpediaIn.bind(this),
+                order: 31,
+                dynamic: false
+            },
+            {
                 method: this.gtInspectorPolygonIn.bind(this),
                 order: 40,
                 dynamic: true
@@ -85,23 +108,47 @@ class LGeoObject extends LObject {
         return Thenable.resolve(this);
     }
 
+
+    lindasQuery() {
+        return this.isMunicipality().then(isMunicipality => {
+            if (isMunicipality) {
+                return LINDAS_MUNICIPALITY_QUERY;
+            }
+            else return this.isDistrict().then(isDistrict => {
+                if (isDistrict) {
+                    return LINDAS_DISTRICT_QUERY;
+                }
+                else return this.isCanton().then(isCanton => {
+                    if (isCanton) {
+                        return LINDAS_CANTON_QUERY;
+                    }
+                    else return Thenable.reject(Error('Can not link lindas database'));
+                })
+            })
+        })
+    }
+
     lindas() {
-        throw Error('Should be implemented');
-        // if (_.isUndefined(this.cache.lindas)) {
-        //     this.cache.lindas = this.propertyValueAt('bfsNumber').then(bfsNumber =>
-        //         this.serviceProvider().lindasEndpoint().query(this.lindasQuery(bfsNumber))
-        //         .then(result => this.serviceProvider().lindasObject({
-        //             uri: result.binding.uri,
-        //             geo: this,
-        //             dbpedia: this.cache.dbpedia
-        //         })));
-        // }
-        // return this.cache.lindas;
+        if (_.isUndefined(this.cache.lindas)) {
+            this.cache.lindas = Thenable.multiple({
+                bfsNumber: this.propertyValueAt('bfsNumber'),
+                query: this.lindasQuery()
+            })
+                .then(request => {
+                    console.log(request);
+                    return this.serviceProvider().lindasEndpoint().query(request.query(request.bfsNumber))
+                        .then(result => this.serviceProvider().lindasObject({
+                            uri: result.binding.uri,
+                            geo: this,
+                            dbpedia: this.cache.dbpedia
+                        }))
+                });
+        }
+        return this.cache.lindas;
     }
 
     dbpedia() {
-        //return this.lindas().then(lindas => lindas.dbpedia());
-        throw Error('Should be implemented');
+        return this.lindas().then(lindas => lindas.dbpedia());
     }
 
 
@@ -208,6 +255,10 @@ class LGeoObject extends LObject {
         composite.dynamic(() => this.lindas());
     }
 
+    gtInspectorDBpediaIn(composite) {
+        composite.dynamic(() => this.dbpedia());
+    }
+
     gtInspectorVersionsIn(composite) {
         composite.table(table => {
             table.title(() => 'Geo Versions');
@@ -271,7 +322,7 @@ class LGeoObject extends LObject {
 
     gtInspectorWebMapIn(composite) {
         composite.iframe(iframe => {
-            iframe.title(entity => 'Map');
+            iframe.title(entity => 'Web Map');
             iframe.when(entity => entity.hasProperty('hasMap'));
             iframe.display(entity => entity.propertyValueAt('hasMap'))
         })

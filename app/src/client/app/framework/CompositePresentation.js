@@ -43,8 +43,6 @@ class CompositeComponent extends PresentationComponent {
             return result;
         });
 
-        console.log(thenLeft);
-
         if (thenLeft <= 0) {
             this.state.presentations = CompositeComponent.copyPresentations(presentations);
         }
