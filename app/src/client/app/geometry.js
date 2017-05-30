@@ -36,7 +36,7 @@ function geometry(geometryName, wktName, linkedBlock) {
                                 unit: child,
                                 data: linkedBlock(child)
                             })
-                        }).then(feature => simplifyTurf.default(feature, 0.002));
+                        }).then(feature => simplifyTurf.default(feature, 0.001));
                     }))
                 });
             })

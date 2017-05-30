@@ -27,7 +27,8 @@ class Presentation {
                 strongSelection: entity => entity
             },
             owner: null, // owner presentation,
-            uuid: uuid()
+            uuid: uuid(),
+            order: 0
         };
     }
 
@@ -200,6 +201,10 @@ class Presentation {
 
     uuid() {
         return this.state.uuid;
+    }
+
+    order() {
+        return this.state.order;
     }
 
     render() {

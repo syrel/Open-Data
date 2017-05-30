@@ -133,9 +133,18 @@ class LObject {
     /**
      * Return value(content) of a property with a given name
      * @param aName
+     * @param defaultValue
      * @returns {Thenable}
      */
-    propertyValueAt(aName) {
+    propertyValueAt(aName, defaultValue) {
+        if(!_.isUndefined(defaultValue)) {
+            return this.hasProperty(aName).then(hasProperty => {
+                if (hasProperty) {
+                    return this.propertyAt(aName).then(property => property.getContent());
+                }
+                else return Thenable.resolve(defaultValue);
+            })
+        }
         return this.propertyAt(aName).then(property => property.getContent());
     }
 

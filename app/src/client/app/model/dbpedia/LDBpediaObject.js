@@ -25,7 +25,7 @@ class LDBpediaObject extends LObject {
         this.extensions.push(
             {
                 method: this.gtInspectorNeighboringMunicipalitiesIn.bind(this),
-                order: 20,
+                order: 15,
                 dynamic: true
             },
             {
@@ -61,11 +61,14 @@ class LDBpediaObject extends LObject {
     }
 
     neighbors() {
-        return this.propertyValuesAt('neighboringMunicipality').then(municipalities => {
-            return municipalities.map(municipality => this.serviceProvider().dbpediaObject({
-                uri: municipality
-            }));
-        });
+        if (_.isUndefined(this.cache.neighbors)) {
+            this.cache.neighbors = this.propertyValuesAt('neighboringMunicipality').then(municipalities => {
+                return municipalities.map(municipality => this.serviceProvider().dbpediaObject({
+                    uri: municipality
+                }));
+            });
+        }
+        return this.cache.neighbors;
     }
 
     propertiesTitle() {

@@ -379,7 +379,7 @@ class LGeoObject extends LObject {
                         text.display(entity => Thenable.multiple({
                             population: entity.propertyValueAt('ontology#population'),
                             area: entity.propertyValueAt('area'),
-                            lakeArea: entity.propertyValueAt('lakeArea')
+                            lakeArea: entity.propertyValueAt('lakeArea', 0)
                         }));
                         text.format(data => {
                             var br = React.createElement('br');

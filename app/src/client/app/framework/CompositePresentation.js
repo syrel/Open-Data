@@ -129,7 +129,12 @@ class CompositePresentation extends Presentation {
         return this.compose(CompositePresentation, block);
     }
 
+    sortedPresentations() {
+        return _.sortBy(this.presentations, presentation => presentation.state.order);
+    }
+
     dynamic(block, forceDynamic) {
+
         if (_.isUndefined(forceDynamic)){
             forceDynamic = false;
         }
@@ -140,7 +145,19 @@ class CompositePresentation extends Presentation {
 
             if (!_.isUndefined(entity.extensions)) {
                 var dynamicPresentations = entity.extensions.filter(extension => forceDynamic || _.isUndefined(extension.dynamic) || extension.dynamic);
-                _.each(_.sortBy(dynamicPresentations, extension => extension.order), extension => extension.method(this));
+                _.each(_.sortBy(dynamicPresentations, extension => extension.order), extension => {
+                    const count = this.presentations.length;
+                    const order = extension.order;
+                    extension.method(this);
+                    for (var index = count; index < this.presentations.length; index++) {
+                        var presentation = this.presentations[index];
+                        // breaks recursion
+                        if (presentation.state.__dynamic__order__ !== true) {
+                            presentation.state.order = order;
+                            presentation.state.__dynamic__order__ = true;
+                        }
+                    }
+                });
             }
 
             for (var index = presentationsCount; index < this.presentations.length; index++) {
@@ -153,7 +170,11 @@ class CompositePresentation extends Presentation {
                 }
             }
         });
-        entityThenable.onCompleted(() => this.updateComponent());
+        entityThenable.onCompleted(() => {
+            this.presentations = this.sortedPresentations();
+            this.updateComponent()
+        });
+        this.presentations = this.sortedPresentations();
         this.updateComponent();
     }
 
@@ -205,7 +226,19 @@ class CompositePresentation extends Presentation {
 
     openOn(entity) {
         if (!_.isUndefined(entity.extensions)) {
-            _.each(_.sortBy(entity.extensions, extension => extension.order), extension => extension.method(this));
+            _.each(_.sortBy(entity.extensions, extension => extension.order), extension => {
+                const count = this.presentations.length;
+                const order = extension.order;
+                extension.method(this);
+                for (var index = count; index < this.presentations.length; index++) {
+                    var presentation = this.presentations[index];
+                    // breaks recursion
+                    if (presentation.state.__dynamic__order__ !== true) {
+                        presentation.state.order = order;
+                        presentation.state.__dynamic__order__ = true;
+                    }
+                }
+            });
         }
         this.on(entity);
     }

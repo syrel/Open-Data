@@ -10,7 +10,7 @@ import Thenable from './Thenable'
 class Sparql {
     static query(endpoint, query) {
         return Thenable.of((resolve, reject) => {
-            $.post(endpoint, { query: query }).done(function(data) {
+            $.post(endpoint, { query: query, output: 'xml' }).done(function(data) {
                 try {
                     // extract headers out of xml
                     var json = $.xml2json(data);
