@@ -9,6 +9,7 @@ import { Tabs as BootstrapTabs } from 'react-bootstrap';
 import { Tab as BootstrapTab } from 'react-bootstrap';
 import camelCase from 'lodash/camelCase';
 import _ from 'underscore';
+import uuid from '../uuid'
 
 import CompositePresentation from './CompositePresentation';
 
@@ -93,12 +94,12 @@ class MaterialTabulatorComponent extends CompositePresentation.CompositeComponen
     renderTab(tabKey) {
         var presentations = this.presentations();
         if (presentations.length == 0) {
-            return <div key={0} className="content"></div>;
+            return <div key={uuid()} className="content"></div>;
         }
 
         var presentation = this.presentationForKey(tabKey);
         if (_.isUndefined(presentation)) {
-            return <div key={0} className="content"></div>;
+            return <div key={uuid()} className="content"></div>;
         }
         return <div key={ tabKey } className="content"> { presentation.render(tabKey) }</div>
     }
@@ -151,7 +152,7 @@ class TabulatorPresentation extends CompositePresentation {
     }
 
     render(index) {
-        return (<MaterialTabulatorComponent key={ this.uuid() }  bind={ this.bindings() } defaultTab={ this.state.defaultTab }/>);
+        return (<MaterialTabulatorComponent key={ this.uuid() + index }  bind={ this.bindings() } defaultTab={ this.state.defaultTab }/>);
     }
 }
 

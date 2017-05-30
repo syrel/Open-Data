@@ -47,13 +47,18 @@ class LGeoObject extends LObject {
                 dynamic: true
             },
             {
-                method: this.gtInspectorMapIn.bind(this),
+                method: this.gtInspectorVersionsIn.bind(this),
+                order: 15,
+                dynamic: true
+            },
+            {
+                method: this.gtInspectorWebMapIn.bind(this),
                 order: 20,
                 dynamic: true
             },
             {
-                method: this.gtInspectorVersionsIn.bind(this),
-                order: 22,
+                method: this.gtInspectorMapIn.bind(this),
+                order: 20,
                 dynamic: true
             },
             {
@@ -262,6 +267,14 @@ class LGeoObject extends LObject {
                 .evaluated(each => each.toString())
             });
         });
+    }
+
+    gtInspectorWebMapIn(composite) {
+        composite.iframe(iframe => {
+            iframe.title(entity => 'Map');
+            iframe.when(entity => entity.hasProperty('hasMap'));
+            iframe.display(entity => entity.propertyValueAt('hasMap'))
+        })
     }
 
     gtInspectorMapIn(composite) {

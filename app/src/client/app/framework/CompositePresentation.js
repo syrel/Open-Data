@@ -35,17 +35,17 @@ class CompositeComponent extends PresentationComponent {
                 thenLeft--;
             });
             thenable.onCompleted(() => {
-                if (thenLeft <= 0) {
-                    if (!_.isEqual(this.state.presentations, presentations)) {
-                        this.state.presentations = CompositeComponent.copyPresentations(presentations);
-                        this.setState(this.state);
-                    }
+                if (!_.isEqual(this.state.presentations, presentations)) {
+                    this.state.presentations = CompositeComponent.copyPresentations(presentations);
+                    this.setState(this.state);
                 }
             });
             return result;
         });
 
-        if (thenLeft == 0) {
+        console.log(thenLeft);
+
+        if (thenLeft <= 0) {
             this.state.presentations = CompositeComponent.copyPresentations(presentations);
         }
 
@@ -156,6 +156,7 @@ class CompositePresentation extends Presentation {
             }
         });
         entityThenable.onCompleted(() => this.updateComponent());
+        this.updateComponent();
     }
 
     compose(presentationClass, block) {

@@ -160,7 +160,7 @@ class App extends React.Component {
         // this.map.on(canton);
 
         this.inspector = new Inspector();
-        this.inspector.openOn(lindasMunicipality);
+        this.inspector.openOn(endpoint);
     }
 
     handleChange() {

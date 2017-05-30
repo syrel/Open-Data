@@ -41,6 +41,11 @@ class PresentationComponent extends React.Component {
         }
     }
 
+    componentWillUnmount() {
+        this.props.bind.component = _.noop();
+        this.resetState();
+    }
+
     resetState() {
         this.state.cache = {};
     }
