@@ -4,8 +4,7 @@
 
 import React from 'react';
 import * as d3 from "d3";
-import PresentationComponent from './PresentationComponent';
-import Presentation from './Presentation';
+import SvgPresentation from './SvgPresentation';
 import _ from 'underscore'
 
 class MapLayer {
@@ -76,7 +75,7 @@ class MapLayer {
 
     /**
      * @param {Object} context - specification of rendering context
-     * @param {Selection} context.svg - svg to render on
+     * @param {Selection} context.canvas - canvas to render on
      * @param {int} context.width - svg width
      * @param {int} context.height - svg height
      * @param {Object} context.entity - presentation's displayed value
@@ -96,7 +95,7 @@ class PathLayer extends MapLayer {
 
     /**
      * @param {Object} context - specification of rendering context
-     * @param {Selection} context.svg - svg to render on
+     * @param {Selection} context.canvas - canvas to render on
      * @param {int} context.width - svg width
      * @param {int} context.height - svg height
      * @param {Object} context.entity - presentation's displayed value
@@ -106,14 +105,14 @@ class PathLayer extends MapLayer {
     renderOn(context) {
         var projection = d3.geoMercator().fitSize([context.width, context.height], context.datum);
         var path = d3.geoPath().projection(projection);
-        var svg = context.svg;
+        var canvas = context.canvas;
 
-        svg.append('path')
+        canvas.append('path')
             .datum(context.datum)
             .attr("class", "boundary")
             .attr("d", path);
 
-        svg.append("g")
+        canvas.append("g")
             .selectAll("path")
             .data(context.data)
             .enter().append("path")
@@ -130,7 +129,7 @@ class PathLayer extends MapLayer {
                 this.presentation().strongSelected(this.getSelected(value))
             });
 
-        var labels = svg.append('g').attr('class', 'labels');
+        var labels = canvas.append('g').attr('class', 'labels');
         labels
             .selectAll('.label')
             .data(context.data)
@@ -144,25 +143,15 @@ class PathLayer extends MapLayer {
     }
 }
 
-class MapComponent extends PresentationComponent {
-
-    componentDidMount() {
-        this.renderMap();
-    }
-
-    componentDidUpdate() {
-        this.renderMap();
-    }
+class MapComponent extends SvgPresentation.SvgComponent {
 
     layers() {
         var value = this.displayedValue();
         return this.presentation().layers().filter(layer => layer.state.when(value));
     }
 
-    renderMap() {
-        var svg = d3.select(this.refs.svg)
-            .attr('width', this.props.width)
-            .attr('height', this.props.height);
+    renderSVG() {
+        var svg = d3.select(this.refs.svg);
 
         svg.selectAll('*').remove();
 
@@ -170,6 +159,17 @@ class MapComponent extends PresentationComponent {
         if (layers.length == 0) {
            return;
         }
+
+        var margin = {
+            top: 20,
+            right: 20,
+            bottom: 20,
+            left: 20
+        };
+
+        var g = svg
+            .append('g')
+            .attr('transform', entity => 'translate('+ margin.left +',' + margin.top + ')');
 
         var displayedValue = this.displayedValue();
         layers
@@ -183,22 +183,18 @@ class MapComponent extends PresentationComponent {
             .filter(spec => !_.isUndefined(spec.data))
             .forEach(spec =>
                 spec.layer.renderOn({
-                    svg: svg,
-                    width: this.props.width,
-                    height: this.props.height,
+                    canvas: g,
+                    width: this.props.width - margin.left - margin.right,
+                    height: this.props.height - margin.top - margin.bottom,
                     entity: spec.entity,
                     data: spec.data,
                     datum: spec.layer.getDisplayed(spec.entity)
                 })
             );
     }
-
-    render() {
-        return <svg width={ this.props.width } height={ this.props.height } ref="svg" style={{ display: 'block', margin: 'auto' }}/>
-    }
 }
 
-class MapPresentation extends Presentation {
+class MapPresentation extends SvgPresentation {
     constructor(props) {
         super(props);
 

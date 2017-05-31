@@ -14,16 +14,18 @@ class Inspector extends Browser {
             var pagerPane = this.composite.paneOf(event.presentation);
 
             var defaultTab;
+            var animatedScroll = true;
             if (this.composite.isLast(pagerPane)) {
                 defaultTab = pagerPane.selectedTab();
             }
             else {
                 defaultTab = this.composite.presentations[this.composite.indexOf(pagerPane) + 1].selectedTab();
+                animatedScroll = false;
             }
-            
+
             this.composite.popAfter(pagerPane);
             this.addPane(event.entity, defaultTab);
-            this.composite.scrollToLast();
+            this.composite.scrollToLast(animatedScroll);
         });
     }
 

@@ -12,6 +12,10 @@ import Thenable from './../Thenable'
 class PagerComponent extends CompositePresentation.CompositeComponent {
     constructor(props) {
         super(props);
+
+        this.cache = {
+            scrollTo: _.noop()
+        };
     }
 
     render() {
@@ -28,23 +32,50 @@ class PagerComponent extends CompositePresentation.CompositeComponent {
         );
     }
 
-    componentDidUpdate() {
-        if (!this.props.scrollToLast) {
-            return;
-        }
-
-        if (this.presentations().length < 1) {
-            return;
-        }
-
-        const pane = this.refs['pane' + (this.presentations().length-1)];
+    scrollToLast(animated) {
+        animated = _.isUndefined(animated) ? true : animated;
+        const lastPane = this.refs['pane' + (this.presentations().length-1)];
         const pager = ReactDOM.findDOMNode(this);
 
-        Thenable.delay(50).then(() => {
+        this.presentation().state.scrollToLast = {
+            scroll: false,
+            animated: false
+        };
+
+        var scrollLeft = () => {
+            return $(pager).scrollLeft() + $(lastPane).offset().left + $(lastPane).width();
+        };
+
+        if (animated) {
             $(pager).animate({
-                scrollLeft: $(pager).scrollLeft() + $(pane).offset().left + $(pane).width()
+                scrollLeft: scrollLeft()
             }, 750);
+        }
+        else {
+            $(pager).scrollLeft(scrollLeft());
+        }
+    };
+
+    componentDidUpdate() {
+        if (!this.presentation().state.scrollToLast.scroll) {
+            return;
+        }
+
+        if (!this.presentation().state.scrollToLast.animated) {
+            return this.scrollToLast(false);
+        }
+
+        const scrollToThenable = Thenable.delay(50).then(() => {
+            if (this.presentations().length < 1) {
+                return;
+            }
+
+            if (scrollToThenable !== this.cache.scrollTo) {
+                return;
+            }
+            this.scrollToLast(this.presentation().state.scrollToLast.animated);
         });
+        this.cache.scrollTo = scrollToThenable;
     }
 }
 
@@ -53,7 +84,10 @@ class PagerPresentation extends CompositePresentation {
         super(props);
 
         Object.assign(this.state, {
-            scrollToLast: true
+            scrollToLast: {
+                scroll: true,
+                animated: false
+            }
         });
     }
 
@@ -77,14 +111,16 @@ class PagerPresentation extends CompositePresentation {
         }
     }
 
-    scrollToLast() {
-        this.state.scrollToLast = true;
+    scrollToLast(isAnimated) {
+        this.state.scrollToLast = {
+            scroll: true,
+            animated: isAnimated
+        };
+        this.updateComponent();
     }
 
     render() {
-        var scroll = this.state.scrollToLast;
-        this.state.scrollToLast = false;
-        return (<PagerComponent key={ this.uuid() } bind={ this.bindings() } scrollToLast={ scroll } />);
+        return (<PagerComponent key={ this.uuid() } bind={ this.bindings() } />);
     }
 }
 

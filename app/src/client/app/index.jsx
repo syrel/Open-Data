@@ -14,12 +14,16 @@ import 'material-design-lite'
 import 'react-mdl/extra/material.css';
 import 'react-mdl/extra/material.js';
 
+// Custom styles
+import '!style-loader!css-loader!./../styles.css';
+
 import React from 'react';
 import {render} from 'react-dom';
 import Inspector from './framework/Inspector';
 import LEndpoint from './model/LEndpoint';
 import LObject from './model/LObject';
 import './extensions';
+import { ElementQueries } from 'css-element-queries';
 
 import LServiceProvider from './model/LServiceProvider';
 
@@ -83,3 +87,4 @@ class App extends React.Component {
 
 render(<App/>, document.getElementById('app'));
 $.material.init();
+ElementQueries.listen();

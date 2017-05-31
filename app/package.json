@@ -24,6 +24,7 @@
     "babel-preset-es2016": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "bootstrap-material-design": "^0.5.10",
+    "css-element-queries": "^0.4.0",
     "css-loader": "^0.28.2",
     "d3": "^4.9.1",
     "file-loader": "^0.11.1",

@@ -116,6 +116,10 @@ class LLindasObject extends LObject {
     }
 
     dbpedia() {
+        console.log(this);
+
+
+
         if (_.isUndefined(this.cache.dbpedia)) {
             this.cache.dbpedia = this
                 .propertyContaining('owl#sameAs', 'dbpedia.org')

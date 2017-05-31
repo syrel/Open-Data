@@ -4,39 +4,12 @@
 
 import React from 'react';
 import * as d3 from "d3";
-import PresentationComponent from './PresentationComponent';
-import Presentation from './Presentation';
-import _ from 'underscore'
+import SvgPresentation from './SvgPresentation';
 
-class BarChartComponent extends PresentationComponent {
+class BarChartComponent extends SvgPresentation.SvgComponent {
 
-    componentDidMount() {
-        this.renderChart();
-    }
-
-    componentDidUpdate() {
-        this.renderChart();
-    }
-
-    p(x,y){
-        return x+" "+y+" ";
-    }
-
-    roundedRectangle(x, y, w, h, r1, r2, r3, r4){
-        var strPath = "M" + this.p(x+r1,y);
-        strPath+="L"+this.p(x+w-r2,y)+"Q"+this.p(x+w,y)+this.p(x+w,y+r2);
-        strPath+="L"+this.p(x+w,y+h-r3)+"Q"+this.p(x+w,y+h)+this.p(x+w-r3,y+h);
-        strPath+="L"+this.p(x+r4,y+h)+"Q"+this.p(x,y+h)+this.p(x,y+h-r4);
-        strPath+="L"+this.p(x,y+r1)+"Q"+this.p(x,y)+this.p(x+r1,y);
-        strPath+="Z";
-        return strPath;
-}
-
-
-    renderChart() {
-        var svg = d3.select(this.refs.svg)
-            .attr('width', this.props.width)
-            .attr('height', this.props.height);
+    renderSVG() {
+        var svg = d3.select(this.refs.svg);
 
         svg.selectAll('*').remove();
 
@@ -122,13 +95,9 @@ class BarChartComponent extends PresentationComponent {
             .attr('font-size', '9pt')
             .text(entity => label(entity));
     }
-
-    render() { // , background: 'rgb(0,200,198)'
-        return <svg width={ this.props.width } height={ this.props.height } ref="svg" style={{ display: 'block', margin: 'auto' }}/>
-    }
 }
 
-class BarChartPresentation extends Presentation {
+class BarChartPresentation extends SvgPresentation {
     constructor(props) {
         super(props);
 
