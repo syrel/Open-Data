@@ -38,3 +38,5 @@ app/node_modules/
 
 # Babel output
 app/dist/
+
+app/src/client/public/bundle.js

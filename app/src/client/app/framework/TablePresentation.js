@@ -53,7 +53,7 @@ class MaterialTableComponent extends PresentationComponent {
                 shadow={0}
                 rows={rows}
                 onClick={this.handleStrongSelection.bind(this)}
-                className={ this.presentation().showHeader() ? '' : 'mdl-data-table--no-header' }
+                className={ 'dont-break-out ' + (this.presentation().showHeader() ? '' : 'mdl-data-table--no-header') }
                 style={{width: '100%'}}>{
                 columns.map((column, index) => (
                     <MaterialTableHeader
