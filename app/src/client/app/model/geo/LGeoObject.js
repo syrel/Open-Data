@@ -136,7 +136,7 @@ class LGeoObject extends LObject {
     lindas() {
         if (_.isUndefined(this.cache.lindas)) {
             this.cache.lindas = Thenable.multiple({
-                bfsNumber: this.propertyValueAt('bfsNumber'),
+                bfsNumber: this.propertyValueAt('bfsNumber', 0),
                 query: this.lindasQuery()
             })
                 .then(request => {
@@ -152,9 +152,8 @@ class LGeoObject extends LObject {
     }
 
     dbpedia() {
-        return this.lindas().then(lindas => lindas.dbpedia()).then(dbpedia => dbpedia.neighbors());
+        return this.lindas().then(lindas => lindas.dbpedia());
     }
-
 
     propertiesTitle() {
         return 'Geo';

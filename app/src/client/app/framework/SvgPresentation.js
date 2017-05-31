@@ -11,6 +11,9 @@ import _ from 'underscore';
 
 class SvgComponent extends PresentationComponent {
     updateHeight() {
+        if (_.isUndefined(this.refs.svg)) {
+            return;
+        }
         $(this.refs.svg.parentNode).height(Math.ceil($(this.refs.svg).height()));
     }
 

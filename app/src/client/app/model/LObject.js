@@ -69,32 +69,27 @@ class LObject {
      */
     properties() {
         if (_.isUndefined(this.cache.properties)) {
-            this.cache.properties = Thenable.of((resolve, reject) => {
-                Sparql.query(this.endpoint.getUri(), ALL_PROPERTIES_QUERY(this.uri))
-                    .then(result => {
-                        var properties = result.map(each => {
-                            var bindings = each.binding;
-                            var property = _.omit(bindings[0], '$');
-                            var value = _.omit(bindings[1], '$');
+            this.cache.properties = this.endpoint.query(ALL_PROPERTIES_QUERY(this.uri))
+                .then(properties => properties.map(each => {
+                    var bindings = each.binding;
+                    var property = _.omit(bindings[0], '$');
+                    var value = _.omit(bindings[1], '$');
 
-                            var valueContent = value[_.keys(value)[0]];
-                            if (_.isObject(valueContent)) {
-                                valueContent = valueContent._;
-                            }
-                            var valueName = _.keys(value)[0];
-                            try {
-                                valueContent = decodeURIComponent(valueContent)
-                            }
-                            catch (e) {/* is not URI, simply ignore */}
-                            return new LBinding({
-                                endpoint: this.endpoint,
-                                property: { content: property[_.keys(property)[0]], name: _.keys(property)[0] },
-                                value: LValue.from(this.endpoint, valueContent, valueName)
-                            });
-                        });
-                        resolve(properties);
-                    }, error => reject(error));
-            });
+                    var valueContent = value[_.keys(value)[0]];
+                    if (_.isObject(valueContent)) {
+                        valueContent = valueContent._;
+                    }
+                    var valueName = _.keys(value)[0];
+                    try {
+                        valueContent = decodeURIComponent(valueContent)
+                    }
+                    catch (e) {/* is not URI, simply ignore */}
+                    return new LBinding({
+                        endpoint: this.endpoint,
+                        property: { content: property[_.keys(property)[0]], name: _.keys(property)[0] },
+                        value: LValue.from(this.endpoint, valueContent, valueName)
+                    });
+                }));
         }
         return this.cache.properties;
     }
@@ -104,15 +99,12 @@ class LObject {
      * @returns {Thenable}
      */
     propertyAt(aName) {
-        return Thenable.of((resolve, reject) => {
-            this.properties().then(properties => {
-                let found = properties.filter(property => LObject.extractName(property.getProperty().content) == aName);
-                if (found.length > 0) {
-                    resolve(found[0]);
-                }
-                else reject(Error('Property #' + aName + ' not found'));
-            },
-            error => { reject(error) })
+        return this.properties().then(properties => {
+            let found = properties.filter(property => LObject.extractName(property.getProperty().content) == aName);
+            if (found.length > 0) {
+                return found[0];
+            }
+            return Thenable.reject(Error('Property #' + aName + ' not found'));
         });
     }
 
@@ -194,6 +186,9 @@ class LObject {
      * @returns {Thenable}
      */
     propertyContaining(aName, aSubstring) {
+
+
+
         return Thenable.of((resolve, reject) => {
             this.properties().then(properties => {
                 let found = properties.filter(binding =>
@@ -222,41 +217,6 @@ class LObject {
                         && binding.getContent().toString().includes(aSubstring);
                 })
                 .length > 0)
-    }
-
-    municipalityBy(bfsNumber) {
-        var id = 'municipality'+bfsNumber;
-        if (_.isUndefined(this.cache[id])) {
-            this.cache[id] = Thenable.of((resolve, reject) => {
-                Sparql.query(LEndpoint.lindas().getUri(), LINDAS_MUNICIPALITY_QUERY(bfsNumber))
-                    .then(result => {
-                        var municipality = new LObject({
-                            endpoint: LEndpoint.lindas(),
-                            uri: result.binding.uri});
-                        resolve(municipality);
-                    }, error => reject(error));
-            });
-        }
-        return this.cache[id];
-    }
-
-    hasDBpedia() {
-        return this.hasPropertyContaining('owl#sameAs', 'dbpedia.org');
-    }
-
-    lindas() {
-        if (_.isUndefined(this.cache.lindas)) {
-            this.cache.lindas = this.propertyValueAt('bfsNumber').then(bfsNumber => Sparql
-                .query(this.serviceProvider().lindasEndpoint().getUri(), LINDAS_MUNICIPALITY_QUERY(bfsNumber))
-                .then(result => this.serviceProvider().lindasObject({
-                    uri: result.binding.uri
-                })));
-        }
-        return this.cache.lindas;
-    }
-
-    dbpedia() {
-        return this.lindas().then(lindas => lindas.dbpedia());
     }
 
     static extractName(content) {

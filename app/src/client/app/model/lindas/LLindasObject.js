@@ -116,10 +116,6 @@ class LLindasObject extends LObject {
     }
 
     dbpedia() {
-        console.log(this);
-
-
-
         if (_.isUndefined(this.cache.dbpedia)) {
             this.cache.dbpedia = this
                 .propertyContaining('owl#sameAs', 'dbpedia.org')
@@ -127,7 +123,7 @@ class LLindasObject extends LObject {
                     uri: property.getContent(),
                     lindas: this,
                     geo: this.cache.geo
-                }))
+                }));
         }
         return this.cache.dbpedia;
     }

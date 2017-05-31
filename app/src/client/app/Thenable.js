@@ -52,7 +52,7 @@ class Thenable {
         };
 
         var rejected = (error) => {
-            console.error(error);
+            //console.error(error);
             this.rejected = { error: error };
             this.state.then.forEach(then => { if (!Thenable.isUndefined(then.rejected)) then.rejected(error) });
             this.state.onCompleted.forEach(onCompleted => onCompleted());
@@ -277,7 +277,7 @@ class Thenable {
                         results.push(result);
                     },
                     err => {
-                        console.error(err);
+                        //console.error(err);
                         errors.push(err);
                     },
                     () => {
@@ -308,7 +308,7 @@ class Thenable {
                         results.push([ keys[results.length], result]);
                     },
                     err => {
-                        console.error(err);
+                        //console.error(err);
                         errors.push(err);
                     },
                     () => {
