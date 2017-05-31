@@ -264,7 +264,7 @@ class LGeoObject extends LObject {
 
     gtInspectorVersionsIn(composite) {
         composite.table(table => {
-            table.title(() => 'Geo Versions');
+            table.title(() => 'Versions');
             table.when(entity => entity.hasProperty('hasVersion'));
             table.display(entity => entity.versions());
             table.strongTransmit(version => version);
