@@ -2,6 +2,8 @@
  * Created by syrel on 11.05.17.
  */
 
+// Styles
+import '!style-loader!css-loader!./../styles.css';
 import '!style-loader!css-loader!bootstrap/dist/css/bootstrap.css';
 
 import '!style-loader!css-loader!bootstrap-material-design/dist/css/bootstrap-material-design.css';
@@ -12,11 +14,11 @@ import '!style-loader!css-loader!material-design-lite/material.css';
 import 'material-design-lite'
 
 import 'react-mdl/extra/material.css';
-import 'react-mdl/extra/material.js';
-
-// Custom styles
 import '!style-loader!css-loader!./../styles.css';
 
+import 'react-mdl/extra/material.js';
+
+// Modules
 import React from 'react';
 import {render} from 'react-dom';
 import Inspector from './framework/Inspector';
@@ -44,24 +46,6 @@ class App extends React.Component {
             //endpoint: new LEndpoint('https://query.wikidata.org/bigdata/namespace/wdq/sparql')
             //endpoint: new LEndpoint('http://data.alod.ch/query')
         };
-
-        // this.map = new MapPresentation();
-        // this.map.defaultDisplay(() => {
-        //     return {
-        //         unit: {},
-        //         children: []
-        //     }
-        // });
-        // this.map.display(entity => geometry('geosparql#hasGeometry', 'geosparql#asWKT')(country, country => country.cantons()));
-        // this.map.layer(layer => { layer
-        //     .display(entity => {
-        //         //console.log(entity);
-        //         return entity.children
-        //     })
-        //     .evaluated(geo => geo.features);
-        // });
-        // this.map.on(canton);
-
         this.inspector = new Inspector();
         this.inspector.openOn(this.state.endpoint);
     }
@@ -77,7 +61,6 @@ class App extends React.Component {
                     <div className="mdl-layout--large-screen-only mdl-layout__header-row"></div>
                 </header>
                 <main className="mdl-layout__content">
-                    {/*{ this.map.render() }*/}
                     { this.inspector.render() }
                 </main>
             </div>
@@ -87,4 +70,3 @@ class App extends React.Component {
 
 render(<App/>, document.getElementById('app'));
 $.material.init();
-ElementQueries.listen();

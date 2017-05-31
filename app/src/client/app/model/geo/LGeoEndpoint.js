@@ -64,7 +64,7 @@ class LGeoEndpoint extends LEndpoint {
                         var countries = result.map(each => {
                             var country = each.binding[0];
                             var name = each.binding[1];
-                            return this.serviceProvider().geoCountry({
+                            return this.serviceProvider().geoObject({
                                 uri: country.uri,
                                 name: name.literal
                             });

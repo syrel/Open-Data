@@ -87,21 +87,21 @@ class LLindasObject extends LObject {
                 entity => entity.isCanton(),
                 'cantonId',
                 GEO_CANTON_QUERY,
-                (entity, props) => this.serviceProvider().geoCanton(props)
+                (entity, props) => this.serviceProvider().geoObject(props)
             );
 
             var districtQuery = geoQuery(
                 entity => entity.isDistrict(),
                 'districtId',
                 GEO_DISTRICT_QUERY,
-                (entity, props) => this.serviceProvider().geoDistrict(props)
+                (entity, props) => this.serviceProvider().geoObject(props)
             );
 
             var municipalityQuery = geoQuery(
                 entity => entity.isMunicipality(),
                 'municipalityId',
                 GEO_MUNICIPALITY_QUERY,
-                (entity, props) => this.serviceProvider().geoMunicipality(props)
+                (entity, props) => this.serviceProvider().geoObject(props)
             );
 
             var query = municipalityQuery(districtQuery(cantonQuery()));
