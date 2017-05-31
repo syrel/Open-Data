@@ -128,7 +128,7 @@ class BarChartPresentation extends SvgPresentation {
     }
 
     render(index) {
-        return (<BarChartComponent key={ this.uuid() } bind={ this.bindings() } width={800} height={250}/>)
+        return (<BarChartComponent key={ this.uuid() } bind={ this.bindings() } width={800} height={200}/>)
     }
 }
 
