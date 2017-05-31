@@ -1,0 +1,23 @@
+@import 'responsive';
+
+$pager--pane-width: (
+        mobile: 95%,
+        tablet: 90%,
+        small: 65%,
+        medium: 49%,
+        large: 45%,
+        wide: 32%,
+        default: 49%
+);
+
+@function pager--get-width-for($media) {
+  @if map-has-key($pager--pane-width, $media) {
+    @return map-get($pager--pane-width, $media);
+  } @else {
+    @return map-get($pager--pane-width, default);
+  }
+}
+
+@function pager--get-width() {
+  @return pager--get-width-for($media-name);
+}

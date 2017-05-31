@@ -1,0 +1,12 @@
+@import 'responsive';
+
+.presentation--content {
+  padding: 24px;
+  width: 100%;
+
+  @include respond-to(mobile) { padding: 6px; }
+  @include respond-to(tablet) { padding: 6px; }
+  @include respond-to(small) { padding: 12px; }
+  @include respond-to(medium) { padding: 24px; }
+  @include respond-to('large+') { padding: 36px; }
+}

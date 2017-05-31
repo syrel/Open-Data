@@ -3,7 +3,6 @@
  */
 
 // Styles
-import '!style-loader!css-loader!./../styles.css';
 import '!style-loader!css-loader!bootstrap/dist/css/bootstrap.css';
 
 import '!style-loader!css-loader!bootstrap-material-design/dist/css/bootstrap-material-design.css';
@@ -14,18 +13,18 @@ import '!style-loader!css-loader!material-design-lite/material.css';
 import 'material-design-lite'
 
 import 'react-mdl/extra/material.css';
-import '!style-loader!css-loader!./../styles.css';
 
-import 'react-mdl/extra/material.js';
+// Custom styles
+import '!style-loader!css-loader!sass-loader!./styles/styles.scss';
 
 // Modules
+import 'react-mdl/extra/material.js';
 import React from 'react';
 import {render} from 'react-dom';
 import Inspector from './framework/Inspector';
 import LEndpoint from './model/LEndpoint';
 import LObject from './model/LObject';
 import './extensions';
-import { ElementQueries } from 'css-element-queries';
 
 import LServiceProvider from './model/LServiceProvider';
 

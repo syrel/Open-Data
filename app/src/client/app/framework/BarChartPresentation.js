@@ -40,14 +40,13 @@ class BarChartComponent extends SvgPresentation.SvgComponent {
         g.selectAll('.background')
             .data(data)
             .enter().append('rect')
-            .attr('class', 'background')
+            .attr('class', 'barchart--bar-background')
             .attr('x', entity => x(valueX(entity)))
             .attr('y', margin.top)
             .attr('rx', radius)
             .attr('ry', radius)
             .attr('width', x.bandwidth())
             .attr('height', this.props.height - margin.top - margin.bottom)
-            .attr('fill', 'rgba(255,255,255,0.28)')
             .on('click', value => {
                 this.presentation().strongSelected(this.presentation().state.selected(value))
             });
@@ -71,8 +70,7 @@ class BarChartComponent extends SvgPresentation.SvgComponent {
                     radius,
                     radius)
             })
-            .attr('class', 'bar')
-            .attr('fill', 'rgba(255,255,255,0.6)')
+            .attr('class', 'barchart--bar')
             .on('click', value => {
                 this.presentation().strongSelected(this.presentation().state.selected(value))
             });

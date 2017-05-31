@@ -25,7 +25,7 @@ class MaterialCardComponent extends CompositePresentation.CompositeComponent {
 
     render() {
         return (
-            <div style={{width: '100%', padding: '16pt'}}>
+            <div className="presentation--content" style={{width: '100%'}}>
                 <Card shadow={0} style={{ width: '100%', margin: 'auto'}}>
                     <div style={{color: '#fff', background: this.presentation().state.background(this.entity())}}>
                         <div>{ this.presentation().state.contentPresentation.render(-1) }</div>

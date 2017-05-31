@@ -1,0 +1,130 @@
+$break-mobile: 600px;   // 0 - 600 => mobile
+// 600+ => mobile+
+
+$break-tablet: 800px;   // 601 - 799 => tablet
+// 800+ => tablet+
+
+$break-small: 1000px;   // 800 - 999 => small
+// 1000+ => small+
+
+$break-medium: 1200px;  // 1000 - 1200 => medium
+$break-large: 1600px;   // 1200 - 1600 => large
+// 1600+ => wide
+
+// global, holds current break size
+$media-size: $break-medium;
+$media-name: medium;
+
+@mixin respond-to($media) {
+  @if $media == mobile {
+    @media only screen and (max-width: $break-mobile) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-mobile !global;
+      $media-name: mobile !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == 'mobile+' {
+    @media only screen and (min-width: $break-mobile) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-mobile + ($break-mobile / 2) !global;
+      $media-name: 'mobile+' !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == tablet {
+    @media only screen and (min-width: $break-mobile + 1) and (max-width: $break-tablet - 1) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-mobile + (($break-tablet - $break-mobile) / 2) !global;
+      $media-name: tablet !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == 'tablet+' {
+    @media only screen and (min-width: $break-tablet) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-tablet + ($break-tablet / 2) !global;
+      $media-name: 'tablet+' !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == small {
+    @media only screen and (min-width: $break-tablet) and (max-width: $break-small - 1) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-tablet + (($break-small - $break-tablet) / 2) !global;
+      $media-name: small !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == 'small+' {
+    @media only screen and (min-width: $break-small) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-small + ($break-small / 2) !global;
+      $media-name: 'small+' !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == medium {
+    @media only screen and (min-width: $break-small) and (max-width: $break-medium - 1) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-small + (($break-medium - $break-small) / 2) !global;
+      $media-name: medium !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == 'medium+' {
+    @media only screen and (min-width: $break-medium) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-medium + ($break-medium / 2) !global;
+      $media-name: 'medium+' !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == large {
+    @media only screen and (min-width: $break-medium) and (max-width: $break-large - 1) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-medium + (($break-large - $break-medium) / 2) !global;
+      $media-name: large !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == 'large+' {
+    @media only screen and (min-width: $break-large) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-large + ($break-large / 2) !global;
+      $media-name: 'large+' !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  } @else if $media == wide {
+    @media only screen and (min-width: $break-large) {
+      $old: $media-size;
+      $old-name: $media-name;
+      $media-size: $break-large + ($break-large / 2) !global;
+      $media-name: wide !global;
+      @content;
+      $media-size: $old !global;
+      $media-name: $old-name !global;
+    }
+  }
+}

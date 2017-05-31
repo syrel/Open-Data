@@ -1,0 +1,19 @@
+$bar-color: rgba(255, 255, 255, .6);
+$bar-background-color: rgba(255, 255, 255, .28);
+$bar-background-hover-color: rgba(255, 255, 255, .5);
+
+.barchart {
+  &--bar {
+    cursor: pointer;
+    fill: $bar-color;
+  }
+
+  &--bar-background {
+    cursor: pointer;
+    fill: $bar-background-color;
+
+    &:hover {
+      fill: $bar-background-hover-color;
+    }
+  }
+}

@@ -1,0 +1,15 @@
+@import 'responsive';
+@import 'mixins';
+@import 'pager-props';
+
+.pager-pane {
+  @include exact-width(90%);
+
+  display: inline-block;
+  height: 100%;
+  vertical-align: top;
+
+  @each $media in (mobile tablet small medium large wide) {
+    @include respond-to($media) { @include exact-width(pager--get-width()); }
+  }
+}

@@ -5,8 +5,6 @@
 import React from 'react';
 import { Tabs as MaterialTabs } from 'react-mdl';
 import { Tab as MaterialTab } from 'react-mdl';
-import { Tabs as BootstrapTabs } from 'react-bootstrap';
-import { Tab as BootstrapTab } from 'react-bootstrap';
 import camelCase from 'lodash/camelCase';
 import _ from 'underscore';
 import uuid from '../uuid'
@@ -102,30 +100,6 @@ class MaterialTabulatorComponent extends CompositePresentation.CompositeComponen
             return <div key={uuid()} className="content"></div>;
         }
         return <div key={ tabKey } className="content"> { presentation.render(tabKey) }</div>
-    }
-}
-
-class BootstrapTabulatorComponent extends CompositePresentation.CompositeComponent {
-    constructor(props) {
-        super(props);
-
-        this.state.activeTab = 0;
-    }
-
-    handleSelect(activeTab) {
-        this.setState({activeTab});
-    }
-
-    render() {
-        return (
-            <BootstrapTabs activeKey={this.state.activeTab} onSelect={this.handleSelect.bind(this)} animation={false} id="tabulator">
-                {
-                    this.presentations().map((presentation, index) => (
-                        <BootstrapTab key={index} eventKey={index}
-                             title={ presentation.getTitle() }>{ presentation.render(index) }</BootstrapTab>
-                    ))
-                }
-            </BootstrapTabs>);
     }
 }
 

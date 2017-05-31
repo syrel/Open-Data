@@ -6,11 +6,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PresentationComponent from './PresentationComponent';
 import Presentation from './Presentation';
-import { Table as BootstrapTable } from 'react-bootstrap';
 import { DataTable as MaterialTable } from 'react-mdl';
 import { TableHeader as MaterialTableHeader } from 'react-mdl';
 
-import TableColumn from './TableColumn';
 import _ from 'underscore';
 import $ from 'jquery';
 import camelCase from 'lodash/camelCase';
@@ -48,12 +46,15 @@ class MaterialTableComponent extends PresentationComponent {
             }))
         );
 
-        return (<div style={{width: '100%', padding: '16pt'}}>
+
+
+
+        return (<div className='presentation--content'>
             <MaterialTable
                 shadow={0}
                 rows={rows}
                 onClick={this.handleStrongSelection.bind(this)}
-                className={ 'dont-break-out ' + (this.presentation().showHeader() ? '' : 'mdl-data-table--no-header') }
+                className={'presentation-table pointable ' + (this.presentation().showHeader() ? '' : 'mdl-data-table--no-header') }
                 style={{width: '100%'}}>{
                 columns.map((column, index) => (
                     <MaterialTableHeader
@@ -75,52 +76,41 @@ class MaterialTableComponent extends PresentationComponent {
     }
 }
 
-
-class BootstrapTableComponent extends PresentationComponent {
-
-    defaultDisplayedValue() {
-        return [];
+class TableColumn {
+    constructor(index) {
+        this.state = {
+            named: entity => 'Column '+(index+1),
+            evaluated: entity => entity,
+            displayed: entity => entity,
+            index: index
+        }
     }
 
-    handleStrongSelection(entity) {
-        this.presentation().strongSelected(entity);
-        this.forceUpdate();
+    named(block) {
+        this.state.named = block;
+        return this;
     }
 
-    render() {
-        var values = this.displayedValue();
-        var columns = this.presentation().columns();
-
-        return (
-            <BootstrapTable hover>
-                {this.presentation().showHeader() &&
-                    <thead>
-                    <tr>
-                        { columns.map((column, index) => (<th key={index}> { column.getName(this.entity()) } </th>)) }
-                    </tr>
-                    </thead>
-                }
-                <tbody>
-                    { values.map((value, index) => this.renderRow(value, index, columns)) }
-                </tbody>
-            </BootstrapTable>
-        );
+    evaluated(block) {
+        this.state.evaluated = block;
+        return this;
     }
 
-    renderRow(value, valueIndex, columns) {
-        return (<tr
-                    key={valueIndex}
-                    value={value}
-                    onClick={() => this.handleStrongSelection(value) }
-                    className={ (_.isEqual(this.strongSelection(), value) ? 'Table-strongSelection mdl-color--primary' : '') }>
-            { columns.map((column, columnIndex) =>
-                (<td key={columnIndex} style={{'wordWrap': 'break-all'}}>
-                    {
-                        column.getValue(this.presentation().transform(value))
-                    }
-                </td>))
-            }
-        </tr>)
+    display(block) {
+        this.state.displayed = block;
+        return this;
+    }
+
+    getName(entity) {
+        return this.state.named(entity);
+    }
+
+    getValue(object) {
+        return this.state.displayed(this.state.evaluated(object));
+    }
+
+    index() {
+        return this.state.index;
     }
 }
 

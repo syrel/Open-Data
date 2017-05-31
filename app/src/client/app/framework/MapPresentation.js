@@ -109,14 +109,14 @@ class PathLayer extends MapLayer {
 
         canvas.append('path')
             .datum(context.datum)
-            .attr("class", "boundary")
+            .attr('class', 'map--boundary')
             .attr("d", path);
 
         canvas.append("g")
             .selectAll("path")
             .data(context.data)
             .enter().append("path")
-            .attr("class", "feature")
+            .attr('class', 'map--feature')
             .classed('selected', value => this.getSelected(value) === this.presentation().strongSelection())
             .attr("d", path)
             .on('mouseover', (value, index, paths) => {
@@ -135,7 +135,7 @@ class PathLayer extends MapLayer {
             .data(context.data)
             .enter()
             .append('text')
-            .attr('class', 'label')
+            .attr('class', 'map--label')
             .attr('transform', d => 'translate(' + path.centroid(d) + ')')
             .style('text-anchor', 'middle')
             .on('mouseover', null).on('mouseout', null)

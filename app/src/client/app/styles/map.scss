@@ -1,0 +1,37 @@
+$fill-color: #fff;
+$stroke-color: #aaa;
+$hovered-color: rgba(255, 151, 0, .31);
+$selected-color: rgba(255, 0, 0, .31);
+$label-color: #000;
+
+.map {
+  &--boundary {
+    fill: $fill-color;
+    stroke: $stroke-color;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1px;
+  }
+
+  &--feature {
+    cursor: pointer;
+    fill: transparent;
+    transition: fill .25s ease;
+
+    &.hovered {
+      fill: $hovered-color;
+    }
+
+    &.selected {
+      fill: $selected-color;
+    }
+  }
+
+  &--label {
+    fill: $label-color;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 7pt;
+    font-weight: lighter;
+    pointer-events: none;
+  }
+}

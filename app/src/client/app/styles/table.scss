@@ -1,0 +1,19 @@
+@import 'mixins';
+@import 'pager-props';
+@import 'responsive';
+
+// return amount of pixels that table cell should have depending on screen and pager pane size
+@function table--get-cell-width() {
+  @return ($media-size * (pager--get-width() / 100%) / 4) + 1px;
+}
+
+// hack to force very long words and urls to break
+.presentation-table {
+  @include break-all;
+
+  td:first-child {
+    @each $media in (mobile tablet small medium large wide) {
+      @include respond-to($media) { min-width: table--get-cell-width(); }
+    }
+  }
+}
