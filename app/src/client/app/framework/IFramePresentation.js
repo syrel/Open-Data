@@ -13,7 +13,7 @@ class IFrameComponent extends PresentationComponent {
 
     iframe() {
         return {
-            __html: '<iframe style="border: 0" height="90%" width="95%" src="'+ this.displayedValue()+'"></iframe>'
+            __html: '<iframe style="border: 0; min-height: 500px;" width="95%" src="'+ this.displayedValue()+'"></iframe>'
         }
     }
 
