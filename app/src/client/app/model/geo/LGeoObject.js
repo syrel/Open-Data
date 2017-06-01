@@ -89,11 +89,12 @@ class LGeoObject extends LObject {
                 order: 31,
                 dynamic: false
             },
-            {
-                method: this.gtInspectorPolygonIn.bind(this),
-                order: 40,
-                dynamic: true
-            });
+            // {
+            //     method: this.gtInspectorPolygonIn.bind(this),
+            //     order: 40,
+            //     dynamic: true
+            // }
+            );
     }
 
     versions() {
