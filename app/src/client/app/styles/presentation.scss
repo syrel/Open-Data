@@ -8,5 +8,6 @@
   @include respond-to(tablet) { padding: 6px; }
   @include respond-to(small) { padding: 12px; }
   @include respond-to(medium) { padding: 12px; }
-  @include respond-to('large+') { padding: 36px; }
+  @include respond-to(large) { padding: 18px; }
+  @include respond-to(wide) { padding: 24px; }
 }
