@@ -1,0 +1,10 @@
+{
+"title": "Linked Data Browser",
+"description": "Linked Data Browser allows users to navigate through data in various linked databases and discover interconnections between them in real time. To support understandability of data browser provides multiple visual representations of objects depending on current context. Miller's Column based interface helps users to keep track of the navigation session path and allows them to reconstruct important decision making points.",
+"authors": [
+    {"name": "Aliaksei Syrel", "email": "alex@syrel.ch"}
+],
+"date": "2017-06-01",
+"category": "environment",
+"software_license": "MIT License"
+}
